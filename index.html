@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SimTelkom — Simulasi Edukasi Visual Telekomunikasi</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --navy: #05101f; --navy2: #071428; --navy3: #0d1f3c;
+  --card: #0a1628; --card2: #0e1e36;
+  --blue: #1e6fff; --blue2: #3b8eff; --blue3: #4da8ff;
+  --cyan: #00d4ff; --cyan2: #00bcd4; --cyan3: #00fff5;
+  --border: rgba(30,111,255,.18); --border2: rgba(0,212,255,.12);
+  --text: #f0f8ff; --text2: #8ab4d4; --text3: #4a7a9b;
+  --green: #00e676; --red: #ff4444; --amber: #ffb300;
+  --violet: #7c4dff; --rose: #ff5252;
+  --glass: rgba(14,30,54,.7); --glass2: rgba(10,22,40,.85);
+  --glow-b: 0 0 24px rgba(30,111,255,.4); --glow-c: 0 0 24px rgba(0,212,255,.4);
+  --font: 'Inter',sans-serif; --mono: 'JetBrains Mono',monospace;
+  --hand: 'Caveat',cursive; --display: 'Space Grotesk',sans-serif;
+  --r: 16px; --r2: 12px; --r3: 8px;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:100%; min-height:100%; background:var(--navy); color:var(--text); font-family:var(--font); overflow-x:hidden; -webkit-font-smoothing:antialiased; }
+button, input { font-family:var(--font); }
+canvas { max-width:100%; display:block; border-radius:var(--r2); }
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(30,111,255,.3); border-radius:4px; }
+
+/* ─── DEVICE SELECT ─── */
+#device-screen {
+  position:fixed; inset:0; z-index:9999;
+  background:var(--navy);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0;
+}
+.ds-bg { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+.ds-orb { position:absolute; border-radius:50%; filter:blur(80px); opacity:.12; animation:orbPulse 8s ease-in-out infinite; }
+.ds-orb:nth-child(1){width:420px;height:420px;background:var(--blue);top:-100px;left:-80px;}
+.ds-orb:nth-child(2){width:320px;height:320px;background:var(--violet);bottom:-80px;right:-60px;animation-delay:3s;}
+.ds-orb:nth-child(3){width:200px;height:200px;background:var(--cyan);top:60%;left:55%;animation-delay:1.5s;}
+@keyframes orbPulse{0%,100%{transform:scale(1) translateY(0)}50%{transform:scale(1.08) translateY(-20px)}}
+
+.ds-inner { position:relative; z-index:1; text-align:center; }
+.ds-badge { display:inline-block; background:rgba(0,212,255,.1); border:1px solid rgba(0,212,255,.25); color:var(--cyan); font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase; padding:6px 16px; border-radius:20px; margin-bottom:20px; }
+.ds-title { font-family:var(--display); font-size:clamp(24px,5vw,44px); font-weight:800; line-height:1.15; margin-bottom:10px;
+  background:linear-gradient(135deg,#e8f4ff 0%,var(--cyan) 50%,var(--blue3) 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.ds-sub { color:var(--text2); font-size:14px; margin-bottom:48px; }
+
+.ds-cards { display:flex; gap:20px; flex-wrap:wrap; justify-content:center; }
+.ds-card {
+  width:210px; background:var(--glass2); border:1px solid var(--border); border-radius:20px;
+  padding:36px 28px; display:flex; flex-direction:column; align-items:center; gap:14px;
+  cursor:pointer; transition:all .3s cubic-bezier(.4,0,.2,1); backdrop-filter:blur(12px);
+  position:relative; overflow:hidden;
+}
+.ds-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,transparent,rgba(30,111,255,.06)); opacity:0; transition:.3s; }
+.ds-card:hover::before { opacity:1; }
+.ds-card:hover { border-color:var(--blue3); transform:translateY(-6px); box-shadow:var(--glow-b); }
+.ds-card:active { transform:scale(.97); }
+.ds-card-icon { font-size:46px; }
+.ds-card-name { font-weight:700; font-size:16px; color:var(--text); }
+.ds-card-desc { font-size:12px; color:var(--text2); text-align:center; line-height:1.6; }
+.ds-card-pill { background:rgba(30,111,255,.15); color:var(--blue3); font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:4px 12px; border-radius:12px; }
+
+/* ─── LOADING ─── */
+#loading-screen {
+  position:fixed; inset:0; z-index:9998;
+  background:var(--navy);
+  display:none; flex-direction:column; align-items:center; justify-content:center;
+}
+.lp-bg { position:absolute; inset:0; overflow:hidden; }
+.lp-particle { position:absolute; width:2px; height:2px; border-radius:50%; animation:pfly linear infinite; opacity:0; }
+@keyframes pfly{0%{opacity:0;transform:translateY(100vh) translateX(0)}10%{opacity:1}90%{opacity:.3}100%{opacity:0;transform:translateY(-80px) translateX(var(--dx,0))}}
+.lp-center { position:relative; z-index:1; text-align:center; }
+.lp-rings { width:120px; height:120px; position:relative; margin:0 auto 32px; }
+.lp-ring { position:absolute; inset:0; border-radius:50%; border:3px solid transparent; }
+.lp-ring:nth-child(1){border-top-color:var(--blue3);border-right-color:var(--blue3);animation:spin 1.8s linear infinite;}
+.lp-ring:nth-child(2){inset:14px;border-bottom-color:var(--cyan);border-left-color:var(--cyan);animation:spin 2.4s linear infinite reverse;}
+.lp-ring:nth-child(3){inset:28px;border-top-color:var(--violet);animation:spin 3s linear infinite;}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.lp-icon { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:38px; }
+.lp-title { font-family:var(--display); font-size:clamp(18px,4vw,30px); font-weight:800; margin-bottom:8px;
+  background:linear-gradient(135deg,#fff,var(--cyan),var(--violet));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.lp-sub { color:var(--text3); font-size:11px; letter-spacing:3px; text-transform:uppercase; margin-bottom:44px; }
+.lp-wrap { width:min(360px,80vw); }
+.lp-pct { color:var(--cyan); font-family:var(--mono); font-size:26px; font-weight:700; margin-bottom:10px; }
+.lp-bar { height:4px; background:rgba(255,255,255,.06); border-radius:4px; overflow:hidden; margin-bottom:14px; }
+.lp-fill { height:100%; width:0; background:linear-gradient(90deg,var(--blue),var(--cyan)); border-radius:4px; transition:width .12s; position:relative; }
+.lp-fill::after { content:''; position:absolute; right:0; top:50%; transform:translateY(-50%); width:8px; height:8px; border-radius:50%; background:#fff; box-shadow:0 0 12px var(--cyan); }
+.lp-status { color:var(--text2); font-size:12px; font-family:var(--mono); min-height:20px; }
+
+/* ─── APP SHELL ─── */
+#app { display:none; min-height:100vh; flex-direction:column; }
+
+.top-nav {
+  background:rgba(7,20,40,.96); border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px); position:sticky; top:0; z-index:100;
+  padding:0 20px; height:60px; display:flex; align-items:center; gap:14px;
+}
+.nav-logo { display:flex; align-items:center; gap:10px; }
+.nav-logo-ico { width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,var(--blue),var(--violet)); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.nav-logo-t { font-size:14px; font-weight:700; color:var(--text); line-height:1.2; font-family:var(--display); }
+.nav-logo-s { font-size:10px; color:var(--text3); }
+.nav-sp { flex:1; }
+.nav-pill { background:rgba(0,212,255,.08); border:1px solid rgba(0,212,255,.15); color:var(--cyan2); font-size:11px; font-weight:600; padding:4px 12px; border-radius:16px; display:flex; align-items:center; gap:6px; }
+.nav-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:blink 2s infinite; }
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+.tabs-bar { background:var(--navy2); border-bottom:1px solid var(--border); padding:12px 16px 0; overflow-x:auto; scrollbar-width:none; }
+.tabs-bar::-webkit-scrollbar { display:none; }
+.tabs-list { display:flex; gap:4px; min-width:max-content; }
+.tab { display:flex; align-items:center; gap:7px; padding:9px 18px; border:none; background:transparent; color:var(--text3); cursor:pointer; font-size:13px; font-weight:500; border-radius:8px 8px 0 0; border-bottom:2px solid transparent; transition:all .18s; white-space:nowrap; font-family:var(--font); }
+.tab:hover { color:var(--text2); background:rgba(255,255,255,.04); }
+.tab.active { color:var(--text); background:rgba(30,111,255,.12); border-bottom-color:var(--blue3); }
+.tab-ico { font-size:16px; }
+
+.cw { flex:1; overflow-y:auto; padding:20px; }
+.pg { display:none; } .pg.active { display:block; }
+.mw { max-width:1400px; margin:0 auto; }
+
+/* ─── GRID ─── */
+.grid2 { display:grid; grid-template-columns:1fr; gap:20px; }
+@media(min-width:920px){ .grid2.split { grid-template-columns:340px 1fr; } }
+.flex-col { display:flex; flex-direction:column; gap:18px; }
+
+/* ─── CARD ─── */
+.card {
+  background:var(--card); border:1px solid var(--border); border-radius:var(--r); overflow:hidden;
+  transition:border-color .2s;
+}
+.card:hover { border-color:rgba(30,111,255,.3); }
+.ch { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; background:rgba(255,255,255,.01); }
+.ch-ico { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.ch-title { font-size:14px; font-weight:600; color:var(--text); }
+.ch-sub { font-size:11px; color:var(--text3); margin-top:2px; }
+.cb { padding:18px; }
+.cb-sm { padding:12px; }
+
+/* ─── GLASSMORPHISM CARD ─── */
+.glass-card {
+  background:var(--glass); backdrop-filter:blur(16px);
+  border:1px solid var(--border); border-radius:var(--r); padding:20px;
+  transition:all .25s;
+}
+.glass-card:hover { border-color:rgba(0,212,255,.25); box-shadow:var(--glow-c); }
+
+/* ─── HERO BANNER ─── */
+.hero {
+  background:linear-gradient(135deg,rgba(30,111,255,.12),rgba(0,212,255,.08),rgba(124,77,255,.08));
+  border:1px solid var(--border); border-radius:var(--r); padding:32px 24px; text-align:center; margin-bottom:20px;
+  position:relative; overflow:hidden;
+}
+.hero::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 30% 50%,rgba(30,111,255,.08),transparent 60%); pointer-events:none; }
+.hero-title { font-family:var(--display); font-size:clamp(18px,4vw,28px); font-weight:800; margin-bottom:10px;
+  background:linear-gradient(135deg,#fff,var(--cyan),var(--blue3)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.hero-sub { color:var(--text2); font-size:13px; line-height:1.7; max-width:500px; margin:0 auto 16px; }
+
+/* ─── DASHBOARD GRID ─── */
+.dash-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(155px,1fr)); gap:12px; }
+.dash-card {
+  background:var(--card2); border:1px solid var(--border); border-radius:var(--r2); padding:20px 16px;
+  text-align:center; cursor:pointer; transition:all .25s; position:relative; overflow:hidden;
+}
+.dash-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--blue),var(--cyan)); transform:scaleX(0); transition:.25s; border-radius:0 0 var(--r2) var(--r2); }
+.dash-card:hover::after { transform:scaleX(1); }
+.dash-card:hover { border-color:var(--border2); transform:translateY(-3px); box-shadow:var(--glow-b); }
+.dash-ico { font-size:32px; margin-bottom:10px; }
+.dash-name { font-size:12px; font-weight:700; color:var(--text); margin-bottom:4px; }
+.dash-sub { font-size:11px; color:var(--text3); }
+
+/* ─── PROGRESS BAR ─── */
+.progress-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.progress-label { font-size:12px; color:var(--text2); width:100px; flex-shrink:0; }
+.progress-bar { flex:1; height:6px; background:rgba(255,255,255,.06); border-radius:6px; overflow:hidden; }
+.progress-fill { height:100%; border-radius:6px; transition:width .5s ease; }
+.progress-val { font-size:11px; font-family:var(--mono); color:var(--text3); width:32px; text-align:right; }
+
+/* ─── BADGE / CHIP ─── */
+.chip { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:16px; font-size:11px; font-weight:600; }
+.chip-blue { background:rgba(30,111,255,.12); color:var(--blue3); border:1px solid rgba(30,111,255,.22); }
+.chip-cyan { background:rgba(0,212,255,.1); color:var(--cyan); border:1px solid rgba(0,212,255,.2); }
+.chip-green { background:rgba(0,230,118,.1); color:var(--green); border:1px solid rgba(0,230,118,.2); }
+.chip-red { background:rgba(255,68,68,.1); color:var(--red); border:1px solid rgba(255,68,68,.2); }
+.chip-amber { background:rgba(255,179,0,.1); color:var(--amber); border:1px solid rgba(255,179,0,.2); }
+
+/* ─── INFO BOX ─── */
+.ib { border-radius:var(--r2); padding:12px 16px; display:flex; gap:10px; align-items:flex-start; margin-bottom:12px; }
+.ib.blue { background:rgba(30,111,255,.07); border:1px solid rgba(30,111,255,.18); }
+.ib.cyan { background:rgba(0,212,255,.07); border:1px solid rgba(0,212,255,.18); }
+.ib.green { background:rgba(0,230,118,.07); border:1px solid rgba(0,230,118,.18); }
+.ib.amber { background:rgba(255,179,0,.07); border:1px solid rgba(255,179,0,.18); }
+.ib.red { background:rgba(255,68,68,.07); border:1px solid rgba(255,68,68,.18); }
+.ib-ico { font-size:16px; flex-shrink:0; margin-top:1px; }
+.ib-txt { font-size:13px; color:var(--text2); line-height:1.6; }
+.ib-txt strong { color:var(--text); }
+
+/* ─── STATUS INDICATORS ─── */
+.status-row { display:flex; gap:10px; flex-wrap:wrap; margin:10px 0; }
+.status-chip {
+  display:flex; align-items:center; gap:6px; padding:7px 14px; border-radius:20px;
+  font-size:12px; font-weight:600; border:1px solid;
+}
+.status-dot { width:8px; height:8px; border-radius:50%; }
+.sc-connected { background:rgba(0,230,118,.1); border-color:rgba(0,230,118,.3); color:var(--green); }
+.sc-connected .status-dot { background:var(--green); box-shadow:0 0 6px var(--green); animation:blink 1.5s infinite; }
+.sc-disconnected { background:rgba(255,68,68,.1); border-color:rgba(255,68,68,.3); color:var(--red); }
+.sc-disconnected .status-dot { background:var(--red); }
+.sc-warning { background:rgba(255,179,0,.1); border-color:rgba(255,179,0,.3); color:var(--amber); }
+.sc-warning .status-dot { background:var(--amber); animation:blink .8s infinite; }
+
+/* ─── BUTTONS ─── */
+.btn { display:inline-flex; align-items:center; gap:7px; padding:9px 20px; border-radius:var(--r3); font-size:13px; font-weight:600; border:none; cursor:pointer; transition:all .18s; white-space:nowrap; font-family:var(--font); }
+.btn-primary { background:linear-gradient(135deg,var(--blue),var(--blue2)); color:#fff; }
+.btn-primary:hover { filter:brightness(1.15); transform:translateY(-2px); box-shadow:var(--glow-b); }
+.btn-secondary { background:rgba(255,255,255,.06); color:var(--text); border:1px solid var(--border); }
+.btn-secondary:hover { background:rgba(255,255,255,.1); }
+.btn-success { background:linear-gradient(135deg,#00c853,#00e676); color:#001a0a; }
+.btn-success:hover { filter:brightness(1.1); transform:translateY(-2px); }
+.btn-danger { background:linear-gradient(135deg,#c62828,var(--red)); color:#fff; animation:pulseBtn 2s infinite; }
+@keyframes pulseBtn{0%,100%{box-shadow:0 0 0 0 rgba(255,68,68,.45)}50%{box-shadow:0 0 0 12px rgba(255,68,68,0)}}
+.btn-danger:hover { filter:brightness(1.15); transform:scale(1.04); }
+.btn-danger:disabled { opacity:.4; animation:none; transform:none!important; }
+.btn-sm { padding:6px 14px; font-size:12px; border-radius:6px; }
+.btn-amber { background:linear-gradient(135deg,#e65100,var(--amber)); color:#1a0a00; }
+.btn-group { display:flex; gap:8px; flex-wrap:wrap; }
+
+/* ─── NOTEBOOK ─── */
+.notebook {
+  background:#fdfdf7; border-radius:var(--r2); padding:24px 20px 20px 54px; position:relative;
+  box-shadow:inset 0 0 0 1px #e8e0cd, 0 4px 20px rgba(0,0,0,.4); font-family:var(--hand); color:#2a2216; overflow:hidden;
+}
+.notebook::before { content:''; position:absolute; left:42px; top:0; bottom:0; width:1px; background:rgba(180,50,50,.3); }
+.nb-lines { position:absolute; inset:0; left:42px; background-image:repeating-linear-gradient(transparent,transparent 32px,rgba(70,90,160,.12) 32px,rgba(70,90,160,.12) 33px); pointer-events:none; }
+.nb-rings { position:absolute; left:20px; top:0; bottom:0; display:flex; flex-direction:column; justify-content:space-evenly; pointer-events:none; }
+.nb-ring { width:18px; height:18px; border:2px solid #bca070; border-radius:50%; background:rgba(188,160,112,.2); }
+.notebook h3 { font-size:20px; font-weight:700; color:#153060; margin-bottom:12px; border-bottom:2px solid rgba(70,90,160,.18); padding-bottom:8px; }
+.notebook p { font-size:16px; line-height:2; color:#382e1a; margin-bottom:10px; }
+.notebook ul { margin-left:16px; }
+.notebook li { font-size:15px; line-height:2; color:#382e1a; }
+.nb-hl { color:#153060; font-weight:600; background:rgba(255,210,50,.4); padding:1px 4px; border-radius:3px; }
+.nb-f { display:inline-block; background:rgba(70,90,160,.09); border:1px solid rgba(70,90,160,.22); border-radius:5px; padding:4px 10px; font-family:var(--mono); font-size:14px; color:#153060; margin:4px 0; }
+.nb-tag { display:inline-block; background:#dceeff; color:#153060; border-radius:4px; font-size:13px; padding:2px 7px; font-weight:600; margin:2px; }
+.nb-date { font-size:13px; color:#888; margin-bottom:14px; display:block; }
+
+/* ─── MATERI CARD ─── */
+.mat-card { background:var(--card); border:1px solid var(--border); border-radius:var(--r); padding:22px; margin-bottom:18px; }
+.mat-card:hover { border-color:var(--border2); }
+.mat-h { font-family:var(--display); font-size:17px; font-weight:700; color:var(--cyan); margin-bottom:6px; }
+.mat-sub { font-size:12px; color:var(--text3); margin-bottom:14px; }
+.mat-body { font-size:13px; color:var(--text2); line-height:1.8; }
+.mat-body strong { color:var(--text); }
+.mat-table { width:100%; border-collapse:collapse; font-size:12px; margin:12px 0; }
+.mat-table th { padding:9px 12px; background:rgba(30,111,255,.08); color:var(--blue3); font-weight:600; text-align:left; border-bottom:1px solid var(--border); }
+.mat-table td { padding:9px 12px; border-bottom:1px solid var(--border); color:var(--text2); }
+.mat-table tr:hover td { background:rgba(255,255,255,.025); }
+.mat-code { background:rgba(0,212,255,.07); border:1px solid rgba(0,212,255,.18); border-radius:5px; padding:2px 7px; font-family:var(--mono); font-size:12px; color:var(--cyan); display:inline-block; margin:2px; }
+.mat-hl { color:var(--amber); font-weight:600; }
+.section-tag { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--violet); margin-bottom:6px; }
+.divider { height:1px; background:var(--border); margin:18px 0; }
+
+/* ─── TOPO ─── */
+#canvas-topo { background:#060f1e; cursor:crosshair; touch-action:none; width:100%; }
+.topo-legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
+.leg-item { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text2); }
+.leg-dot { width:10px; height:10px; border-radius:50%; }
+
+/* ─── HANDOFF ─── */
+#canvas-radar { background:#020a14; touch-action:none; width:100%; }
+#canvas-rssi { background:#020a14; touch-action:none; width:100%; }
+.stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:10px; margin-top:12px; }
+.stat-box { background:var(--card2); border:1px solid var(--border); border-radius:var(--r2); padding:12px; text-align:center; }
+.stat-val { font-size:20px; font-weight:700; font-family:var(--mono); }
+.stat-lbl { font-size:10px; color:var(--text3); margin-top:4px; }
+.mode-grp { display:flex; gap:4px; background:rgba(255,255,255,.04); border:1px solid var(--border); border-radius:var(--r3); padding:3px; }
+.mode-btn { padding:7px 14px; border-radius:6px; border:none; background:transparent; color:var(--text3); cursor:pointer; font-size:12px; font-weight:600; transition:.18s; font-family:var(--font); }
+.mode-btn.active { background:var(--blue); color:#fff; }
+.mode-btn:hover:not(.active) { color:var(--text); }
+
+/* ─── CELLULAR TIMELINE ─── */
+.gen-timeline { display:flex; gap:0; flex-wrap:wrap; margin:14px 0; }
+.gen-item { flex:1; min-width:60px; padding:12px 8px; text-align:center; border:1px solid var(--border); position:relative; cursor:pointer; transition:all .2s; }
+.gen-item:first-child { border-radius:var(--r2) 0 0 var(--r2); }
+.gen-item:last-child { border-radius:0 var(--r2) var(--r2) 0; }
+.gen-item:not(:first-child) { border-left:0; }
+.gen-item:hover { background:rgba(30,111,255,.1); z-index:1; }
+.gen-item.active-gen { background:rgba(0,212,255,.1); border-color:var(--cyan); z-index:2; }
+.gen-label { font-size:13px; font-weight:700; color:var(--text); }
+.gen-year { font-size:10px; color:var(--text3); margin-top:2px; }
+.gen-desc { font-size:11px; color:var(--text2); margin-top:4px; display:none; }
+.gen-item:hover .gen-desc { display:block; }
+.gen-item.active-gen .gen-desc { display:block; color:var(--cyan); }
+
+/* ─── NOC LOG ─── */
+#canvas-noc { background:#040c18; touch-action:none; width:100%; }
+.noc-log { background:#030810; border:1px solid var(--border); border-radius:var(--r2); padding:14px; font-family:var(--mono); font-size:12px; max-height:190px; overflow-y:auto; margin-top:12px; }
+.log-line { display:flex; gap:10px; margin-bottom:6px; animation:logIn .2s ease; }
+@keyframes logIn { from{opacity:0;transform:translateY(-3px)} to{opacity:1;transform:none} }
+.log-t { color:var(--text3); flex-shrink:0; }
+.log-lv { flex-shrink:0; font-weight:700; }
+.log-lv.err{color:var(--red)}.log-lv.warn{color:var(--amber)}.log-lv.ok{color:var(--green)}.log-lv.info{color:var(--cyan)}
+.log-m { color:var(--text2); }
+.act-btn { padding:8px 16px; border-radius:var(--r3); border:1px solid var(--border); background:rgba(255,255,255,.04); color:var(--text); cursor:pointer; font-size:12px; font-family:var(--font); transition:all .18s; font-weight:500; }
+.act-btn:hover { border-color:var(--blue3); background:rgba(30,111,255,.08); }
+.act-btn.sel { border-color:var(--blue3); background:rgba(30,111,255,.14); color:var(--blue3); }
+
+/* ─── KUIS ─── */
+.quiz-header { background:linear-gradient(135deg,rgba(30,111,255,.12),rgba(0,212,255,.08)); border:1px solid var(--border); border-radius:var(--r); padding:20px; margin-bottom:20px; }
+.quiz-progress-bar { height:8px; background:rgba(255,255,255,.07); border-radius:8px; overflow:hidden; margin:10px 0; }
+.quiz-progress-fill { height:100%; border-radius:8px; background:linear-gradient(90deg,var(--blue),var(--cyan)); transition:width .4s ease; }
+.quiz-score { font-size:28px; font-weight:800; font-family:var(--mono); background:linear-gradient(90deg,var(--cyan),var(--blue3)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.q-block { background:var(--card); border:1px solid var(--border); border-radius:var(--r2); padding:18px; margin-bottom:14px; transition:border-color .2s; }
+.q-block:hover { border-color:rgba(30,111,255,.25); }
+.q-num { font-size:11px; font-weight:700; color:var(--blue3); font-family:var(--mono); margin-bottom:8px; letter-spacing:1px; }
+.q-txt { font-size:14px; font-weight:600; color:var(--text); margin-bottom:14px; line-height:1.5; }
+.q-opts { display:flex; flex-direction:column; gap:7px; }
+.q-opt { padding:11px 15px; border-radius:var(--r3); border:1px solid var(--border); background:rgba(255,255,255,.025); color:var(--text2); cursor:pointer; font-size:13px; text-align:left; transition:all .18s; display:flex; align-items:center; gap:10px; }
+.q-opt:hover:not(.disabled) { border-color:var(--blue3); background:rgba(30,111,255,.08); color:var(--text); }
+.q-opt.correct { border-color:var(--green); background:rgba(0,230,118,.1); color:var(--green); }
+.q-opt.wrong { border-color:var(--red); background:rgba(255,68,68,.1); color:var(--red); }
+.q-opt.disabled { cursor:default; }
+.q-opt-ico { width:20px; height:20px; border-radius:50%; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0; }
+.q-exp { margin-top:12px; font-size:13px; color:var(--text2); line-height:1.7; padding:12px 14px; background:rgba(0,212,255,.04); border:1px solid rgba(0,212,255,.12); border-radius:var(--r2); display:none; }
+.q-exp.show { display:block; animation:logIn .25s ease; }
+.quiz-subtabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+.qstab { padding:7px 16px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--text3); cursor:pointer; font-size:12px; font-weight:600; transition:all .18s; font-family:var(--font); }
+.qstab:hover { color:var(--text); border-color:var(--blue3); }
+.qstab.active { background:var(--blue); color:#fff; border-color:var(--blue); }
+
+/* ─── TOAST ─── */
+.toast-wrap { position:fixed; bottom:20px; right:20px; z-index:9999; display:flex; flex-direction:column; gap:8px; pointer-events:none; }
+.toast { background:var(--card2); border:1px solid var(--border); border-radius:var(--r2); padding:11px 16px; display:flex; align-items:center; gap:9px; font-size:13px; min-width:220px; max-width:320px; pointer-events:all; animation:toastIn .3s ease; box-shadow:0 8px 24px rgba(0,0,0,.4); }
+@keyframes toastIn{from{transform:translateX(110%);opacity:0}to{transform:none;opacity:1}}
+.toast.success{border-left:3px solid var(--green)}.toast.error{border-left:3px solid var(--red)}.toast.info{border-left:3px solid var(--blue3)}.toast.warning{border-left:3px solid var(--amber)}
+
+/* ─── MODAL ─── */
+.modal-overlay{position:fixed;inset:0;z-index:9000;background:rgba(2,8,20,.85);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:20px;animation:fadeIn .25s ease}
+.modal-overlay.show{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:16px;max-width:680px;width:100%;max-height:88vh;overflow-y:auto;animation:slideUp .3s cubic-bezier(.2,.8,.4,1)}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(30,111,255,.1),rgba(0,212,255,.05));position:sticky;top:0;z-index:2;backdrop-filter:blur(10px)}
+.modal-head-ic{font-size:26px}
+.modal-title{font-family:var(--display);font-size:17px;font-weight:700;color:var(--text);flex:1}
+.modal-close{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:.18s}
+.modal-close:hover{background:rgba(255,68,68,.15);border-color:var(--red);color:var(--red)}
+.modal-body{padding:22px;font-size:14px;color:var(--text2);line-height:1.8}
+.modal-body strong{color:var(--text)}
+.modal-body h4{font-family:var(--display);font-size:15px;color:var(--cyan);margin:18px 0 8px;font-weight:700}
+.modal-body h4:first-child{margin-top:0}
+.modal-body ul{margin:6px 0 12px 18px}
+.modal-body li{margin-bottom:6px}
+.modal-body p{margin-bottom:12px}
+.modal-body .mat-table{margin:10px 0 14px}
+
+/* ─── MATERI SIDEBAR CARDS ─── */
+.mat-mini{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;transition:all .2s;cursor:pointer;display:flex;gap:12px;align-items:flex-start}
+.mat-mini:hover{border-color:var(--blue3);transform:translateX(3px);background:rgba(30,111,255,.06)}
+.mat-mini-ic{font-size:22px;flex-shrink:0;line-height:1}
+.mat-mini-body{flex:1;min-width:0}
+.mat-mini-t{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
+.mat-mini-d{font-size:11px;color:var(--text3);line-height:1.5;margin-bottom:8px}
+.mat-mini-btn{display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.2);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;transition:.18s;font-family:var(--font)}
+.mat-mini-btn:hover{background:rgba(0,212,255,.18)}
+
+/* ─── STUDENT CARD ─── */
+.student-card{background:linear-gradient(135deg,rgba(30,111,255,.14),rgba(124,77,255,.1));border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;gap:14px;align-items:center;margin-bottom:18px}
+.student-avatar{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;flex-shrink:0;box-shadow:0 4px 12px rgba(30,111,255,.4)}
+.student-info{flex:1;min-width:0}
+.student-name{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px}
+.student-meta{display:flex;gap:6px;flex-wrap:wrap}
+.student-chip{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text2);font-size:10px;font-weight:600;padding:3px 9px;border-radius:10px}
+
+/* ─── XP / LEVEL ─── */
+.xp-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;gap:14px;align-items:center}
+.xp-circle{width:60px;height:60px;border-radius:50%;background:conic-gradient(var(--cyan) var(--xp-deg,0deg),rgba(255,255,255,.05) 0);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
+.xp-circle::before{content:'';position:absolute;inset:5px;border-radius:50%;background:var(--card)}
+.xp-circle-val{position:relative;font-family:var(--mono);font-weight:700;font-size:14px;color:var(--cyan)}
+.xp-info{flex:1;min-width:0}
+.xp-label{font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px}
+.xp-val{font-size:18px;font-weight:800;color:var(--text);font-family:var(--mono)}
+.xp-sub{font-size:11px;color:var(--text2);margin-top:2px}
+
+.level-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px}
+.level-pill{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center}
+.level-pill-t{font-size:11px;color:var(--text3);margin-bottom:4px;font-weight:600}
+.level-pill-v{font-size:15px;font-weight:700;color:var(--text);font-family:var(--mono)}
+.level-pill.done{border-color:rgba(0,230,118,.4);background:rgba(0,230,118,.08)}
+.level-pill.done .level-pill-v{color:var(--green)}
+
+/* ─── HANDOFF NEW STATES ─── */
+.state-track{display:flex;gap:0;margin:10px 0;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:rgba(255,255,255,.02)}
+.state-step{flex:1;padding:8px 4px;text-align:center;font-size:10px;font-weight:600;color:var(--text3);border-right:1px solid var(--border);transition:.25s;position:relative;min-width:0}
+.state-step:last-child{border-right:0}
+.state-step.active{background:var(--blue);color:#fff}
+.state-step.warn{background:var(--amber);color:#1a0a00}
+.state-step.danger{background:var(--red);color:#fff}
+.state-step.ok{background:var(--green);color:#001a0a}
+
+.timer-box{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.timer-icon{font-size:18px}
+.timer-val{font-size:18px;font-weight:700;font-family:var(--mono);color:var(--cyan)}
+.timer-sub{font-size:11px;color:var(--text3)}
+
+.scenario-grp{display:flex;gap:4px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:3px;flex-wrap:wrap}
+.scenario-btn{padding:6px 12px;border-radius:6px;border:none;background:transparent;color:var(--text3);cursor:pointer;font-size:11px;font-weight:600;font-family:var(--font);transition:.18s;flex:1;min-width:90px}
+.scenario-btn.active{background:var(--blue);color:#fff}
+.scenario-btn:hover:not(.active){color:var(--text)}
+
+/* ─── DROPPED CALL OVERLAY ─── */
+.drop-overlay{position:absolute;inset:0;background:rgba(255,68,68,.18);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px);pointer-events:none;border-radius:var(--r2);animation:dropPulse 1s ease infinite}
+@keyframes dropPulse{0%,100%{background:rgba(255,68,68,.15)}50%{background:rgba(255,68,68,.3)}}
+.drop-text{font-family:var(--display);font-size:28px;font-weight:800;color:#fff;text-shadow:0 0 18px var(--red);letter-spacing:3px}
+
+/* ─── QUIZ ONE-PER-PAGE ─── */
+.quiz-card-main{max-width:720px;margin:0 auto;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:24px;position:relative}
+.quiz-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+.quiz-indicator{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--cyan);letter-spacing:1px}
+.quiz-cat-label{font-size:11px;font-weight:700;color:var(--violet);letter-spacing:1.5px;text-transform:uppercase}
+.quiz-main-bar{height:6px;background:rgba(255,255,255,.06);border-radius:6px;overflow:hidden;margin-bottom:20px}
+.quiz-main-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--blue),var(--cyan));transition:width .35s ease}
+.quiz-img-wrap{position:relative;height:200px;border-radius:14px;overflow:hidden;margin-bottom:18px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(135deg,#0a1a2f,#0f2440)}
+.quiz-img-bg{position:absolute;inset:0;background:linear-gradient(135deg,rgba(10,20,40,.4),rgba(4,10,22,.4)),linear-gradient(45deg,var(--qc1,#4da8ff) 0%,transparent 60%);z-index:1}
+.quiz-img-wrap::before{content:'';position:absolute;inset:0;z-index:3;background:linear-gradient(to top,rgba(2,8,20,.88) 20%,transparent 50%);pointer-events:none}
+.quiz-img-wrap::after{content:'';position:absolute;inset:0;z-index:0;background:var(--img-url) center/cover no-repeat;opacity:.45;filter:brightness(0.8) saturate(1.2)}
+.quiz-img-overlay{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;z-index:4}
+.quiz-img-tag{font-size:10px;font-weight:800;letter-spacing:2px;color:#fff;text-transform:uppercase;background:rgba(2,8,20,.7);padding:5px 11px;border-radius:8px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.18)}
+.quiz-img-num{font-size:11px;font-weight:800;color:#fff;background:#000;padding:5px 11px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.quiz-img-title{position:absolute;left:0;right:0;bottom:0;padding:30px 16px 14px;background:linear-gradient(to top,rgba(2,8,20,.95) 30%,transparent);color:#fff;font-weight:800;font-size:16px;font-family:var(--display);z-index:4;line-height:1.2}
+@media(max-width:480px){.quiz-img-wrap{height:160px}.quiz-img-tag,.quiz-img-num{font-size:9px;padding:4px 9px}.quiz-img-title{font-size:14px;padding:24px 12px 11px}}
+.quiz-q-text{font-size:16px;font-weight:600;color:var(--text);margin-bottom:18px;line-height:1.6}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.quiz-opt{padding:14px 16px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.02);color:var(--text);cursor:pointer;font-size:14px;text-align:left;transition:all .18s;display:flex;align-items:center;gap:12px;font-family:var(--font)}
+.quiz-opt:hover:not(.locked){border-color:var(--blue3);background:rgba(30,111,255,.07);transform:translateX(3px)}
+.quiz-opt.locked{cursor:default}
+.quiz-opt.right{border-color:var(--green);background:rgba(0,230,118,.1);color:var(--green)}
+.quiz-opt.wrong{border-color:var(--red);background:rgba(255,68,68,.1);color:var(--red)}
+.quiz-opt-letter{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;font-family:var(--mono)}
+.quiz-opt.right .quiz-opt-letter{background:var(--green);border-color:var(--green);color:#001a0a}
+.quiz-opt.wrong .quiz-opt-letter{background:var(--red);border-color:var(--red);color:#fff}
+.quiz-feedback{margin-top:14px;padding:14px;border-radius:10px;display:none;animation:slideUp .25s ease}
+.quiz-feedback.show{display:block}
+.quiz-feedback.ok{background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.25)}
+.quiz-feedback.bad{background:rgba(255,68,68,.08);border:1px solid rgba(255,68,68,.25)}
+.quiz-feedback-title{font-weight:700;margin-bottom:6px;font-size:13px}
+.quiz-feedback-title.ok{color:var(--green)}.quiz-feedback-title.bad{color:var(--red)}
+.quiz-feedback-text{font-size:13px;color:var(--text2);line-height:1.7}
+.quiz-nav{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:10px;flex-wrap:wrap}
+.quiz-cat-select{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.quiz-cat-btn{padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-size:12px;font-weight:600;transition:.18s;font-family:var(--font)}
+.quiz-cat-btn:hover{color:var(--text);border-color:var(--blue3)}
+.quiz-cat-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.quiz-finish-screen{text-align:center;padding:30px 20px}
+.quiz-finish-emoji{font-size:64px;margin-bottom:14px}
+.quiz-finish-title{font-family:var(--display);font-size:22px;font-weight:800;color:var(--text);margin-bottom:8px}
+.quiz-finish-score{font-size:48px;font-weight:800;font-family:var(--mono);margin:14px 0;background:linear-gradient(90deg,var(--cyan),var(--blue3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+@media(max-width:640px){.cw{padding:12px}.cb{padding:14px}.nb-date{font-size:12px}.notebook{padding:20px 14px 16px 46px}.stat-val{font-size:17px}.modal-box{max-height:92vh}.modal-body{padding:16px}.quiz-card-main{padding:16px}.quiz-q-text{font-size:14px}.quiz-opt{padding:11px 14px;font-size:13px}}
+</style>
+</head>
+<body>
+
+<!-- DEVICE SELECT -->
+<div id="device-screen">
+  <div class="ds-bg"><div class="ds-orb"></div><div class="ds-orb"></div><div class="ds-orb"></div></div>
+  <div class="ds-inner">
+    <div class="ds-badge">✦ Edukasi Telekomunikasi</div>
+    <div class="ds-title">Simulasi Edukasi Visual<br>Telekomunikasi</div>
+    <div class="ds-sub">Pilih tampilan yang sesuai dengan perangkatmu</div>
+    <div class="ds-cards">
+      <div class="ds-card" onclick="go('desktop')"><div class="ds-card-icon">🖥️</div><div class="ds-card-name">Desktop / Laptop</div><div class="ds-card-desc">Panel split-screen penuh, optimal untuk layar lebar</div><div class="ds-card-pill">≥ 920px</div></div>
+      <div class="ds-card" onclick="go('mobile')"><div class="ds-card-icon">📱</div><div class="ds-card-name">HP / Tablet</div><div class="ds-card-desc">Tampilan satu kolom responsif, nyaman disentuh</div><div class="ds-card-pill">Responsive</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading-screen">
+  <div class="lp-bg" id="lp-bg"></div>
+  <div class="lp-center">
+    <div class="lp-rings"><div class="lp-ring"></div><div class="lp-ring"></div><div class="lp-ring"></div><div class="lp-icon">📡</div></div>
+    <div class="lp-title">Simulasi Edukasi Visual<br>Telekomunikasi</div>
+    <div class="lp-sub">Dasar Telekomunikasi</div>
+    <div class="lp-wrap">
+      <div class="lp-pct" id="lp-pct">0%</div>
+      <div class="lp-bar"><div class="lp-fill" id="lp-fill"></div></div>
+      <div class="lp-status" id="lp-st">Menginisialisasi...</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <nav class="top-nav">
+    <div class="nav-logo"><div class="nav-logo-ico">📡</div><div><div class="nav-logo-t">SimTelkom</div><div class="nav-logo-s">Edukasi Visual</div></div></div>
+    <div class="nav-sp"></div>
+    <div class="nav-pill"><div class="nav-dot"></div><span id="ndev">Desktop</span></div>
+  </nav>
+  <div class="tabs-bar"><div class="tabs-list" id="tabs-list"></div></div>
+  <div class="cw"><div id="panels"></div></div>
+</div>
+<div class="toast-wrap" id="tw"></div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-head-ic" id="m-ico">📖</div>
+      <div class="modal-title" id="m-title">Judul Materi</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="m-body">Loading...</div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// CORE
+// ═══════════════════════════════════════════════
+let DM='desktop', TAB=0, GF=0;
+const $ = id => document.getElementById(id);
+
+function go(mode) {
+  DM = mode;
+  $('device-screen').style.display = 'none';
+  const ls = $('loading-screen'); ls.style.display = 'flex';
+  const pb = $('lp-bg');
+  const COLORS = ['#4da8ff','#00d4ff','#7c4dff'];
+  for(let i=0;i<30;i++){
+    const p = document.createElement('div'); p.className='lp-particle';
+    p.style.cssText=`left:${Math.random()*100}%;animation-duration:${4+Math.random()*6}s;animation-delay:${Math.random()*6}s;background:${COLORS[i%3]};`;
+    p.style.setProperty('--dx',(Math.random()*100-50)+'px');
+    pb.appendChild(p);
+  }
+  const STEPS=['Menginisialisasi sistem...','Memuat modul topologi...','Menyiapkan radar seluler...','Memuat NOC dashboard...','Menyusun bank kuis...','Sinkronisasi database...','Siap! Selamat belajar 🎉'];
+  let pct=0;
+  const iv=setInterval(()=>{
+    pct=Math.min(100,pct+Math.random()*4.5+1.2);
+    $('lp-fill').style.width=pct+'%'; $('lp-pct').textContent=Math.round(pct)+'%';
+    const idx=Math.floor((pct/100)*STEPS.length); if(idx<STEPS.length)$('lp-st').textContent=STEPS[idx];
+    if(pct>=100){clearInterval(iv);$('lp-st').textContent=STEPS[STEPS.length-1];
+      setTimeout(()=>{ls.style.display='none';$('app').style.display='flex';$('ndev').textContent=mode==='mobile'?'📱 Mobile':'🖥️ Desktop';buildApp();},600);}
+  },65);
+}
+
+function toast(m,t='info',d=3500){
+  const w=$('tw'),el=document.createElement('div');el.className='toast '+t;
+  el.innerHTML=`<span style="font-size:18px">${t==='success'?'✅':t==='error'?'❌':t==='warning'?'⚠️':'ℹ️'}</span><span style="flex:1;color:var(--text)">${m}</span>`;
+  w.appendChild(el);setTimeout(()=>{el.style.transition='all .3s';el.style.opacity='0';el.style.transform='translateX(110%)';setTimeout(()=>el.remove(),300);},d);
+}
+
+// ═══════════════════════════════════════════════
+// APP BUILDER
+// ═══════════════════════════════════════════════
+const PAGES=[
+  {id:'home',   label:'🏠 Beranda',    build:buildHome},
+  {id:'topo',   label:'🔌 Merakit Jaringan', build:buildTopo},
+  {id:'handoff',label:'📶 Handoff Seluler', build:buildHandoff},
+  {id:'noc',    label:'🖥️ Troubleshooting', build:buildNOC},
+  {id:'quiz',   label:'❓ Kuis',        build:buildQuiz},
+];
+
+function buildApp(){
+  const tl=$('tabs-list'), pn=$('panels');
+  PAGES.forEach((pg,i)=>{
+    const b=document.createElement('button');b.className='tab'+(i===0?' active':'');
+    b.innerHTML=`<span class="tab-ico">${pg.label.split(' ')[0]}</span>${pg.label.slice(pg.label.indexOf(' ')+1)}`;
+    b.onclick=()=>switchTab(i); tl.appendChild(b);
+    const d=document.createElement('div');d.id='pg-'+pg.id;d.className='pg'+(i===0?' active':'');pn.appendChild(d);
+  });
+  buildHome(); startGlobalAnim();
+}
+
+function switchTab(i){
+  TAB=i;
+  document.querySelectorAll('.tab').forEach((b,j)=>b.className='tab'+(j===i?' active':''));
+  document.querySelectorAll('#panels .pg').forEach((p,j)=>p.className='pg'+(j===i?' active':''));
+  PAGES[i].build();
+}
+
+function startGlobalAnim(){requestAnimationFrame(function loop(){GF++;requestAnimationFrame(loop);});}
+
+// ═══════════════════════════════════════════════
+// PAGE 0 — HOME
+// ═══════════════════════════════════════════════
+let progressData={topo:0,handoff:0,noc:0,quiz:0};
+let XP=0;
+
+function addXP(amount){XP+=amount;const xpEl=$('xp-val');if(xpEl){xpEl.textContent=XP+' XP';const deg=Math.min(360,(XP/1000)*360);const circle=document.querySelector('.xp-circle');if(circle)circle.style.setProperty('--xp-deg',deg+'deg');const lvl=Math.floor(XP/100)+1;const lvlEl=$('xp-level');if(lvlEl)lvlEl.textContent='Lvl '+lvl;}}
+
+// ─── MATERI DATA + MODAL ───
+const MATERI={
+  jaringan:{ico:'🌐',title:'Jaringan Komputer',body:`<h4>Definisi</h4><p><strong>Jaringan komputer</strong> adalah kumpulan dua atau lebih perangkat komputasi yang saling terhubung melalui media komunikasi (kabel/nirkabel) untuk berbagi data, sumber daya, dan layanan.</p><h4>Tujuan Jaringan</h4><ul><li><strong>Resource Sharing</strong> — berbagi printer, file, internet</li><li><strong>Komunikasi</strong> — email, chat, video call</li><li><strong>Sentralisasi data</strong> — server file/database</li><li><strong>Efisiensi biaya</strong> — satu perangkat dipakai banyak user</li></ul><h4>Skala Jaringan</h4><table class="mat-table"><tr><th>Tipe</th><th>Cakupan</th><th>Contoh</th></tr><tr><td>PAN</td><td>1-10 m</td><td>Bluetooth HP-headset</td></tr><tr><td>LAN</td><td>Gedung/kampus</td><td>Lab komputer</td></tr><tr><td>MAN</td><td>Kota</td><td>Jaringan kampus multi-gedung</td></tr><tr><td>WAN</td><td>Negara/global</td><td>Internet</td></tr></table>`},
+  pc:{ico:'💻',title:'Fungsi PC (Personal Computer)',body:`<h4>Pengertian</h4><p><strong>PC (Personal Computer)</strong> adalah perangkat komputasi pengguna yang berfungsi sebagai <em>host</em> atau <em>endpoint</em> dalam jaringan. PC mengirim dan menerima data ke perangkat lain.</p><h4>Fungsi dalam Jaringan</h4><ul><li>Sebagai <strong>klien</strong> yang mengakses layanan jaringan</li><li>Mengirim <strong>request</strong> ke server (HTTP, FTP, dll)</li><li>Memiliki <strong>IP address</strong> unik (mis. 192.168.1.10)</li><li>Memiliki <strong>MAC address</strong> permanen di NIC</li><li>Menjalankan aplikasi: browser, email, game online</li></ul><h4>Komponen Jaringan PC</h4><ul><li><strong>NIC (Network Interface Card)</strong> — kartu jaringan</li><li><strong>Port RJ45</strong> — slot kabel UTP</li><li><strong>WiFi adapter</strong> — koneksi nirkabel</li></ul>`},
+  switch:{ico:'🔀',title:'Fungsi Switch',body:`<h4>Pengertian</h4><p><strong>Switch</strong> adalah perangkat jaringan Layer 2 (Data Link) OSI yang menghubungkan banyak PC dalam satu Local Area Network (LAN). Switch jauh lebih cerdas dari Hub.</p><h4>Cara Kerja</h4><ul><li>Menggunakan <strong>MAC address table</strong></li><li>Forwarding frame <strong>hanya ke port tujuan</strong> (bukan broadcast ke semua)</li><li>Menciptakan <strong>collision domain terpisah</strong> per port</li><li>Mendukung <strong>full-duplex</strong> (kirim & terima bersamaan)</li></ul><h4>Jenis Switch</h4><table class="mat-table"><tr><th>Tipe</th><th>Keterangan</th></tr><tr><td>Unmanaged</td><td>Plug-and-play, untuk SOHO</td></tr><tr><td>Managed</td><td>Bisa dikonfigurasi (VLAN, QoS)</td></tr><tr><td>L3 Switch</td><td>Bisa routing antar VLAN</td></tr></table><h4>Keunggulan vs Hub</h4><p>Hub broadcast ke semua port → collision tinggi. Switch hanya ke port tujuan → bandwidth penuh per port.</p>`},
+  router:{ico:'🔴',title:'Fungsi Router',body:`<h4>Pengertian</h4><p><strong>Router</strong> adalah perangkat Layer 3 (Network) OSI yang menghubungkan dua atau lebih jaringan yang berbeda dan meneruskan paket berdasarkan IP address.</p><h4>Fungsi Utama</h4><ul><li><strong>Routing</strong> — menentukan jalur terbaik antar jaringan</li><li><strong>NAT</strong> — translasi IP private ke public</li><li><strong>DHCP server</strong> — memberi IP otomatis ke klien</li><li><strong>Firewall</strong> — keamanan dasar</li><li><strong>Gateway</strong> — pintu keluar ke internet</li></ul><h4>Protokol Routing</h4><table class="mat-table"><tr><th>Protokol</th><th>Tipe</th><th>Skala</th></tr><tr><td>RIP</td><td>Distance vector</td><td>Kecil</td></tr><tr><td>OSPF</td><td>Link-state</td><td>Menengah-Besar</td></tr><tr><td>BGP</td><td>Path vector</td><td>Internet</td></tr></table>`},
+  internet:{ico:'🌍',title:'Fungsi Internet',body:`<h4>Pengertian</h4><p><strong>Internet</strong> adalah jaringan global yang menghubungkan jutaan jaringan komputer di seluruh dunia menggunakan protokol <strong>TCP/IP</strong>.</p><h4>Sejarah Singkat</h4><ul><li>1969 — ARPANET (Departemen Pertahanan AS)</li><li>1983 — Adopsi protokol TCP/IP</li><li>1989 — Tim Berners-Lee menciptakan WWW</li><li>1990-an — Internet komersial</li><li>2000-an — Era broadband & mobile internet</li></ul><h4>Layanan Internet</h4><table class="mat-table"><tr><th>Layanan</th><th>Protokol</th></tr><tr><td>Web browsing</td><td>HTTP/HTTPS</td></tr><tr><td>Email</td><td>SMTP, POP3, IMAP</td></tr><tr><td>File transfer</td><td>FTP, SFTP</td></tr><tr><td>Domain</td><td>DNS</td></tr><tr><td>Streaming</td><td>RTSP, HLS</td></tr></table>`},
+  topo:{ico:'⭐',title:'Topologi Star',body:`<h4>Definisi</h4><p><strong>Topologi Star</strong> adalah susunan jaringan di mana semua perangkat (PC, server) terhubung secara langsung ke satu titik pusat (Switch atau Hub). Bentuknya menyerupai bintang.</p><h4>Karakteristik</h4><ul><li>Setiap node memiliki <strong>dedicated link</strong> ke pusat</li><li>Jika satu kabel putus, hanya 1 perangkat terdampak</li><li>Mudah menambah/mengurangi perangkat</li><li>Membutuhkan banyak kabel (1 per perangkat)</li></ul><h4>Keunggulan</h4><ul><li>✅ Mudah dipasang dan dikelola</li><li>✅ Troubleshooting mudah (isolasi per node)</li><li>✅ Performa stabil per node</li><li>✅ Mendukung skalabilitas</li></ul><h4>Kelemahan</h4><ul><li>❌ Sangat bergantung pada switch pusat</li><li>❌ Switch rusak = seluruh jaringan down</li><li>❌ Butuh kabel lebih banyak</li></ul><h4>Penggunaan</h4><p>Topologi paling umum di LAN modern: kantor, sekolah, kafe, rumah. Standar Ethernet (IEEE 802.3) banyak memakai Star.</p>`},
+  bts:{ico:'📡',title:'BTS (Base Transceiver Station)',body:`<h4>Pengertian</h4><p><strong>BTS</strong> adalah perangkat pemancar dan penerima sinyal radio yang menjadi penghubung antara mobile station (HP) dengan jaringan inti operator seluler.</p><h4>Komponen BTS</h4><ul><li><strong>Antena</strong> — pemancar/penerima gelombang radio</li><li><strong>Transceiver</strong> — modulator/demodulator sinyal</li><li><strong>Power Amplifier</strong> — penguat sinyal</li><li><strong>BSC link</strong> — koneksi ke Base Station Controller</li></ul><h4>Hierarki Jaringan Seluler</h4><p><strong>HP → BTS → BSC → MSC → PSTN/Internet</strong></p><ul><li><strong>BSC</strong> (Base Station Controller) — mengontrol beberapa BTS</li><li><strong>MSC</strong> (Mobile Switching Center) — pusat panggilan</li></ul><h4>Faktor Cakupan BTS</h4><table class="mat-table"><tr><th>Faktor</th><th>Pengaruh</th></tr><tr><td>Daya pemancar</td><td>Semakin besar, jangkauan lebih jauh</td></tr><tr><td>Frekuensi</td><td>Frekuensi tinggi = jangkauan pendek</td></tr><tr><td>Topografi</td><td>Gedung/gunung blokir sinyal</td></tr><tr><td>Cuaca</td><td>Hujan attenuasi sinyal</td></tr></table>`},
+  sel:{ico:'⬡',title:'Konsep Sel (Cellular)',body:`<h4>Pengertian Sel</h4><p><strong>Sel</strong> adalah area geografis yang dilayani oleh satu BTS. Bentuk ideal: <strong>heksagonal</strong> karena efisien menutup area tanpa celah dan tumpang tindih minimal.</p><h4>Mengapa Heksagonal?</h4><ul><li>✅ Menutup area secara sempurna tanpa gap</li><li>✅ Tumpang tindih minimal antar sel</li><li>✅ Distribusi frekuensi optimal</li><li>✅ Antar sel bertetangga overlap sedikit untuk mendukung handoff</li></ul><h4>Tipe Ukuran Sel</h4><table class="mat-table"><tr><th>Tipe Sel</th><th>Radius</th><th>Penggunaan</th></tr><tr><td>Macrocell</td><td>1-30 km</td><td>Pedesaan, suburban</td></tr><tr><td>Microcell</td><td>200-2000 m</td><td>Perkotaan</td></tr><tr><td>Picocell</td><td>4-200 m</td><td>Mall, kantor</td></tr><tr><td>Femtocell</td><td>10 m</td><td>Rumah</td></tr></table><h4>Frequency Reuse</h4><p>Sel yang berjauhan dapat memakai frekuensi yang sama (reuse) untuk efisiensi spektrum. Pola umum: <strong>cluster size 7</strong>.</p>`},
+  handoff:{ico:'🔄',title:'Handoff / Handover',body:`<h4>Pengertian</h4><p><strong>Handoff</strong> (atau <em>Handover</em>) adalah proses perpindahan koneksi mobile station dari satu BTS ke BTS lain saat user bergerak, tanpa memutus panggilan yang sedang berlangsung.</p><h4>Mengapa Diperlukan?</h4><ul><li>User bergerak keluar area cakupan BTS aktif</li><li>Sinyal (RSSI) turun di bawah threshold</li><li>Mencegah <strong>drop call</strong></li><li>Load balancing antar BTS</li></ul><h4>Jenis Handoff</h4><table class="mat-table"><tr><th>Jenis</th><th>Karakteristik</th></tr><tr><td>Hard Handoff</td><td>Break before make (GSM)</td></tr><tr><td>Soft Handoff</td><td>Make before break (CDMA)</td></tr><tr><td>Softer Handoff</td><td>2 sektor 1 BTS (CDMA)</td></tr><tr><td>Vertical HO</td><td>Antar teknologi (WiFi ↔ 4G)</td></tr></table><h4>Kondisi Handoff</h4><p>Rumus dasar: <strong>RSSI_target > RSSI_current + Hysteresis</strong></p><p>Hysteresis (3-6 dB) mencegah <em>pingpong effect</em> — handoff bolak-balik di batas dua sel.</p><h4>Parameter Penting</h4><ul><li><strong>RSSI</strong> — Received Signal Strength Indicator (-40 dBm sangat kuat, -110 dBm sangat lemah)</li><li><strong>Threshold</strong> — biasanya -85 hingga -95 dBm</li><li><strong>Hysteresis margin</strong> — biasanya 3-6 dB</li></ul>`},
+  troubleshoot:{ico:'🔧',title:'Network Troubleshooting',body:`<h4>Definisi</h4><p><strong>Troubleshooting jaringan</strong> adalah proses sistematis mengidentifikasi, mendiagnosis, dan memperbaiki masalah pada jaringan komputer.</p><h4>Pendekatan OSI Bottom-Up</h4><table class="mat-table"><tr><th>Layer</th><th>Cek</th></tr><tr><td>L1 Physical</td><td>Kabel, port, LED, daya</td></tr><tr><td>L2 Data Link</td><td>MAC, VLAN, ARP</td></tr><tr><td>L3 Network</td><td>IP, subnet, routing</td></tr><tr><td>L4 Transport</td><td>Port TCP/UDP, firewall</td></tr><tr><td>L7 Application</td><td>DNS, layanan aplikasi</td></tr></table><h4>Tools Diagnostik</h4><ul><li><code>ping</code> — cek konektivitas (ICMP)</li><li><code>tracert/traceroute</code> — lacak jalur hop-by-hop</li><li><code>ipconfig/ifconfig</code> — lihat IP & gateway</li><li><code>arp -a</code> — IP-MAC table</li><li><code>netstat</code> — koneksi aktif</li><li><code>nslookup</code> — query DNS</li></ul><h4>Checklist Umum</h4><ol style="margin-left:20px"><li>Cek fisik (kabel, LED port)</li><li>Cek IP & gateway (<code>ipconfig</code>)</li><li>Ping gateway → ping DNS → ping internet</li><li>Cek konfigurasi VLAN/routing</li><li>Restart perangkat jika perlu</li><li>Dokumentasikan</li></ol>`},
+};
+
+function openModal(key){const m=MATERI[key];if(!m)return;$('m-ico').textContent=m.ico;$('m-title').textContent=m.title;$('m-body').innerHTML=m.body;$('modal').classList.add('show');document.body.style.overflow='hidden';addXP(2);}
+function closeModal(ev){if(ev&&ev.target!==$('modal'))return;$('modal').classList.remove('show');document.body.style.overflow='';}
+
+function buildHome(){
+  const p=$('pg-home'); if(p.dataset.built) {updateHomeProgress();return;} p.dataset.built='1';
+  p.innerHTML=`<div class="mw">
+
+<!-- STUDENT CARD -->
+<div class="student-card">
+  <div class="student-avatar">SF</div>
+  <div class="student-info">
+    <div class="student-name">Sulthan Fauzian Permana</div>
+    <div class="student-meta">
+      <span class="student-chip">NIM 25050630046</span>
+      <span class="student-chip">Pend. Teknik Mekatronika</span>
+      <span class="student-chip">Kelas F</span>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero" style="padding:24px 22px;margin-bottom:18px">
+  <div style="font-size:42px;margin-bottom:10px">📡</div>
+  <div class="hero-title" style="font-size:clamp(18px,3.6vw,24px);margin-bottom:8px">Simulasi Edukasi Visual Telekomunikasi</div>
+  <div class="hero-sub" style="margin-bottom:12px">Belajar konsep telekomunikasi melalui simulasi interaktif dan kuis bertingkat.</div>
+  <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+    <span class="chip chip-blue">3 Simulasi</span>
+    <span class="chip chip-cyan">Materi Lengkap</span>
+    <span class="chip chip-green">45 Soal Kuis</span>
+  </div>
+</div>
+
+<!-- XP & LEVEL ROW -->
+<div class="grid2 split" style="margin-bottom:18px">
+  <div class="xp-card">
+    <div class="xp-circle" style="--xp-deg:0deg"><div class="xp-circle-val" id="xp-level">Lvl 1</div></div>
+    <div class="xp-info">
+      <div class="xp-label">Total XP</div>
+      <div class="xp-val" id="xp-val">0 XP</div>
+      <div class="xp-sub">Selesaikan misi untuk mendapatkan XP</div>
+    </div>
+  </div>
+  <div class="glass-card" style="padding:16px">
+    <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;letter-spacing:1px;text-transform:uppercase">🏆 Level Completion</div>
+    <div class="level-grid" id="level-grid"></div>
+  </div>
+</div>
+
+<!-- DASH GRID -->
+<div class="dash-grid" style="margin-bottom:18px">
+  <div class="dash-card" onclick="switchTab(1)"><div class="dash-ico">🔌</div><div class="dash-name">Merakit Jaringan</div><div class="dash-sub">Topologi Star + materi</div></div>
+  <div class="dash-card" onclick="switchTab(2)"><div class="dash-ico">📶</div><div class="dash-name">Handoff Seluler</div><div class="dash-sub">3 BTS + skenario</div></div>
+  <div class="dash-card" onclick="switchTab(3)"><div class="dash-ico">🖥️</div><div class="dash-name">Troubleshooting</div><div class="dash-sub">5 skenario gangguan</div></div>
+  <div class="dash-card" onclick="switchTab(4)"><div class="dash-ico">❓</div><div class="dash-name">Kuis</div><div class="dash-sub">45 soal pilihan ganda</div></div>
+</div>
+
+<!-- PROGRESS -->
+<div class="glass-card" style="padding:18px">
+  <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px">📊 Progress Belajar</div>
+  <div id="progress-home"></div>
+</div>
+
+</div>`;
+  updateHomeProgress();updateLevelGrid();
+}
+
+function updateLevelGrid(){
+  const el=$('level-grid');if(!el)return;
+  const items=[['🔌','Topologi','topo'],['📶','Handoff','handoff'],['🖥️','NOC','noc'],['❓','Kuis','quiz']];
+  el.innerHTML=items.map(([ic,n,k])=>{const done=progressData[k]>=80;return `<div class="level-pill${done?' done':''}"><div class="level-pill-t">${ic} ${n}</div><div class="level-pill-v">${progressData[k]}%</div></div>`;}).join('');
+}
+
+function updateHomeProgress(){
+  const el=$('progress-home'); if(!el) return;
+  const items=[['🔌 Merakit Jaringan','topo','var(--blue3)'],['📶 Handoff Seluler','handoff','var(--cyan)'],['🖥️ Troubleshooting','noc','var(--green)'],['❓ Kuis','quiz','var(--violet)']];
+  el.innerHTML=items.map(([lbl,key,color])=>`<div class="progress-row"><span class="progress-label" style="font-size:12px;color:var(--text2)">${lbl}</span><div class="progress-bar"><div class="progress-fill" style="width:${progressData[key]}%;background:${color}"></div></div><span class="progress-val">${progressData[key]}%</span></div>`).join('');
+  updateLevelGrid();
+}
+function setProgress(key,val){progressData[key]=Math.min(100,Math.max(progressData[key],val));updateHomeProgress();}
+
+// ═══════════════════════════════════════════════
+// PAGE 1 — MERAKIT JARINGAN
+// ═══════════════════════════════════════════════
+let TC, TX, TN=[], TK=[], TSel=null, TSc=0, TAnimId=null;
+const TCOLORS={rt:'#ff6b6b',sw:'#00e676',pc:'#4da8ff',sv:'#b39ddb',int:'#ffd54f'};
+const SCENARIOS=[
+  {n:'Jaringan Kelas Dasar',t:'Hubungkan semua PC ke Switch, Switch ke Router, lalu Router ke Internet.',ns:[
+    {id:'int',l:'Internet',tp:'int',x:.5,y:.08,ic:'🌐'},{id:'rt',l:'Router',tp:'rt',x:.5,y:.3,ic:'🔴'},
+    {id:'sw',l:'Switch',tp:'sw',x:.5,y:.55,ic:'🟢'},
+    {id:'p1',l:'PC 1',tp:'pc',x:.15,y:.82,ic:'🔵'},{id:'p2',l:'PC 2',tp:'pc',x:.38,y:.82,ic:'🔵'},
+    {id:'p3',l:'PC 3',tp:'pc',x:.62,y:.82,ic:'🔵'},{id:'p4',l:'PC 4',tp:'pc',x:.85,y:.82,ic:'🔵'},
+  ],rq:[['int','rt'],['rt','sw'],['sw','p1'],['sw','p2'],['sw','p3'],['sw','p4']]},
+  {n:'Jaringan Extended Star',t:'Router ke SW-A & SW-B, masing-masing switch ke PC-nya, dan Router ke Internet.',ns:[
+    {id:'int',l:'Internet',tp:'int',x:.5,y:.06,ic:'🌐'},{id:'rt',l:'Router',tp:'rt',x:.5,y:.28,ic:'🔴'},
+    {id:'s1',l:'Switch A',tp:'sw',x:.25,y:.55,ic:'🟢'},{id:'s2',l:'Switch B',tp:'sw',x:.75,y:.55,ic:'🟢'},
+    {id:'a1',l:'PC A1',tp:'pc',x:.08,y:.84,ic:'🔵'},{id:'a2',l:'PC A2',tp:'pc',x:.3,y:.84,ic:'🔵'},
+    {id:'b1',l:'PC B1',tp:'pc',x:.62,y:.84,ic:'🔵'},{id:'sv',l:'Server\n.50',tp:'sv',x:.88,y:.84,ic:'🟣'},
+  ],rq:[['int','rt'],['rt','s1'],['rt','s2'],['s1','a1'],['s1','a2'],['s2','b1'],['s2','sv']]},
+  {n:'Jaringan Mesh Core',t:'Hubungkan antar Router (Mesh), Router ke Switch, dan ke Internet.',ns:[
+    {id:'int',l:'Internet',tp:'int',x:.5,y:.06,ic:'🌐'},
+    {id:'r1',l:'Router 1',tp:'rt',x:.22,y:.28,ic:'🔴'},{id:'r2',l:'Router 2',tp:'rt',x:.78,y:.28,ic:'🔴'},{id:'r3',l:'Router 3',tp:'rt',x:.5,y:.5,ic:'🔴'},
+    {id:'s1',l:'Switch 1',tp:'sw',x:.18,y:.75,ic:'🟢'},{id:'s2',l:'Switch 2',tp:'sw',x:.82,y:.75,ic:'🟢'},{id:'sv',l:'Server\n.50',tp:'sv',x:.5,y:.14,ic:'🟣'},
+  ],rq:[['int','r1'],['r1','r2'],['r2','r3'],['r1','r3'],['r1','s1'],['r2','s2'],['r3','sv']]},
+];
+
+function buildTopo(){
+  const p=$('pg-topo'); if(p.dataset.built){resizeTopo();return;} p.dataset.built='1';
+  p.innerHTML=`<div class="mw"><div class="grid2 split">
+<div class="flex-col">
+  <div class="card"><div class="ch"><div class="ch-ico" style="background:rgba(30,111,255,.15)">🔌</div><div><div class="ch-title">Merakit Jaringan</div><div class="ch-sub">Simulasi Topologi Star Interaktif</div></div></div><div class="cb">
+    <div class="ib blue"><div class="ib-ico">💡</div><div class="ib-txt"><strong>Cara main:</strong> Klik node asal → klik node tujuan untuk membuat kabel. Klik kanan = hapus koneksi terakhir. Selesaikan semua koneksi lalu klik ✅ Cek.</div></div>
+    <div class="topo-legend"><div class="leg-item"><div class="leg-dot" style="background:#ff6b6b"></div>Router</div><div class="leg-item"><div class="leg-dot" style="background:#00e676"></div>Switch</div><div class="leg-item"><div class="leg-dot" style="background:#4da8ff"></div>PC</div><div class="leg-item"><div class="leg-dot" style="background:#b39ddb"></div>Server</div><div class="leg-item"><div class="leg-dot" style="background:#ffd54f"></div>Internet</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+      <button class="btn btn-secondary btn-sm" onclick="topoReset()">🔄 Reset</button>
+      <button class="btn btn-primary btn-sm" onclick="topoNext()">🎲 Skema Baru</button>
+      <button class="btn btn-success btn-sm" onclick="topoCheck()">✅ Cek Koneksi</button>
+    </div>
+    <div id="topo-task" style="margin-top:12px;font-size:13px;color:var(--text2);background:rgba(255,255,255,.03);border-radius:var(--r3);padding:12px;line-height:1.6"></div>
+    <div id="topo-status" style="margin-top:8px;font-size:12px;font-family:var(--mono);color:var(--text3)"></div>
+    <div id="topo-indicator" style="margin-top:10px"></div>
+  </div></div>
+
+  <div class="card"><div class="ch"><div class="ch-ico" style="background:rgba(0,212,255,.12)">📡</div><div><div class="ch-title">Animasi Aliran Data</div><div class="ch-sub">PC → Switch → Router → Internet</div></div></div><div class="cb">
+    <canvas id="canvas-flow" height="80" style="border-radius:var(--r2);background:#060f1e;width:100%"></canvas>
+    <div style="margin-top:8px;font-size:11px;color:var(--text3);font-family:var(--mono)" id="flow-label">Hubungkan jaringan untuk melihat aliran data</div>
+  </div></div>
+
+  <div class="card"><div class="ch"><div class="ch-ico" style="background:rgba(124,77,255,.15)">📖</div><div><div class="ch-title">Materi Singkat</div><div class="ch-sub">Klik "Lihat Detail" untuk baca penuh</div></div></div><div class="cb">
+    ${[['jaringan','Jaringan Komputer','Sistem perangkat yang saling terhubung'],['pc','Fungsi PC','Host/endpoint dalam jaringan'],['switch','Fungsi Switch','Penghubung LAN, Layer 2 OSI'],['router','Fungsi Router','Pengarah paket antar jaringan'],['internet','Fungsi Internet','Jaringan global TCP/IP'],['topo','Topologi Star','Semua node ke pusat (switch)']].map(([k,t,d])=>{const m=MATERI[k];return `<div class="mat-mini" onclick="openModal('${k}')"><div class="mat-mini-ic">${m.ico}</div><div class="mat-mini-body"><div class="mat-mini-t">${t}</div><div class="mat-mini-d">${d}</div><button class="mat-mini-btn">📖 Lihat Detail</button></div></div>`;}).join('')}
+  </div></div>
+
+  <div class="card"><div class="ch"><div class="ch-ico" style="background:rgba(255,179,0,.12)">📓</div><div><div class="ch-title">Catatan Praktikum</div></div></div><div class="cb" style="padding:0">
+  <div class="notebook"><div class="nb-lines"></div><div class="nb-rings"><div class="nb-ring"></div><div class="nb-ring"></div><div class="nb-ring"></div><div class="nb-ring"></div></div>
+  <span class="nb-date">Jaringan Komputer — Topologi</span>
+  <h3>Topologi Jaringan</h3>
+  <p>Topologi = <span class="nb-hl">susunan fisik/logis</span> perangkat jaringan.</p>
+  <ul>
+    <li><span class="nb-tag">Star</span> — Semua ke switch. Paling umum, mudah kelola.</li>
+    <li><span class="nb-tag">Bus</span> — 1 kabel backbone. Murah, rawan collision.</li>
+    <li><span class="nb-tag">Ring</span> — Melingkar searah (Token Ring).</li>
+    <li><span class="nb-tag">Mesh</span> — Semua terhubung. Mahal, toleran gagal.</li>
+  </ul>
+  <p style="margin-top:8px">Default gateway: <span class="nb-f">192.168.1.1/24</span></p>
+  <p>Switch bekerja di <span class="nb-tag">Layer 2</span>, Router di <span class="nb-tag">Layer 3</span></p>
+  </div></div></div>
+</div>
+
+<div class="flex-col">
+  <div class="card"><div class="ch"><div class="ch-ico" style="background:rgba(0,230,118,.12)">🗺️</div><div><div class="ch-title">Network Canvas</div><div class="ch-sub" id="topo-sc-name">Klik node sumber → klik target</div></div></div><div class="cb-sm"><canvas id="canvas-topo" height="440"></canvas></div></div>
+  <div class="card"><div class="ch"><div class="ch-ico" style="background:rgba(30,111,255,.12)">📋</div><div><div class="ch-title">Penjelasan Koneksi</div><div class="ch-sub" id="topo-explain-sub">Selesaikan koneksi untuk melihat penjelasan</div></div></div><div class="cb" id="topo-explain-body">
+    <div class="ib blue"><div class="ib-ico">👆</div><div class="ib-txt">Klik dua node untuk membuat koneksi, lalu tekan ✅ Cek Koneksi untuk melihat penjelasan lengkapnya.</div></div>
+  </div></div>
+</div>
+</div></div>`;
+  TC=document.getElementById('canvas-topo');TX=TC.getContext('2d');
+  TC.addEventListener('click',topoClick);
+  TC.addEventListener('contextmenu',e=>{e.preventDefault();if(TK.length>0)TK.pop();});
+  TC.addEventListener('touchstart',e=>{e.preventDefault();if(e.touches[0])topoClick({clientX:e.touches[0].clientX,clientY:e.touches[0].clientY});},{passive:false});
+  resizeTopo(); topoLoadSc(0); if(!TAnimId)topoLoop();
+  initFlowCanvas(); setProgress('topo',10);
+}
+
+function resizeTopo(){if(!TC)return;const r=TC.parentElement.getBoundingClientRect();TC.width=Math.floor(r.width)-4;TC.height=440;}
+
+function topoLoadSc(i){
+  TSc=i; TK=[]; TSel=null;
+  const sc=SCENARIOS[i],w=TC.width,h=TC.height;
+  TN=sc.ns.map(n=>({...n,px:n.x*w,py:n.y*h}));
+  $('topo-task').innerHTML=`<strong style="color:var(--cyan)">📌 ${sc.n}:</strong> ${sc.t}`;
+  $('topo-status').textContent='Klik node sumber → klik node target';
+  $('topo-sc-name').textContent=sc.n;
+  $('topo-indicator').innerHTML='';
+  $('topo-explain-sub').textContent='Selesaikan koneksi untuk melihat penjelasan';
+  $('topo-explain-body').innerHTML='<div class="ib blue"><div class="ib-ico">👆</div><div class="ib-txt">Klik dua node untuk membuat koneksi, lalu tekan ✅ Cek Koneksi.</div></div>';
+}
+
+function topoNext(){TSc=(TSc+1)%SCENARIOS.length;topoLoadSc(TSc);toast('Skema: '+SCENARIOS[TSc].n,'info');}
+function topoReset(){topoLoadSc(TSc);toast('Canvas direset','info');}
+
+function topoClick(e){
+  const r=TC.getBoundingClientRect(),sx=TC.width/r.width,sy=TC.height/r.height;
+  const x=(e.clientX-r.left)*sx,y=(e.clientY-r.top)*sy;
+  const n=TN.find(n=>Math.hypot(n.px-x,n.py-y)<28);
+  if(!n){TSel=null;return;}
+  if(!TSel){TSel=n;$('topo-status').textContent=`✦ Dipilih: ${n.l.split('\n')[0]} — klik target`;}
+  else{
+    if(TSel.id!==n.id&&!TK.find(c=>(c[0]===TSel.id&&c[1]===n.id)||(c[0]===n.id&&c[1]===TSel.id))){
+      TK.push([TSel.id,n.id]);$('topo-status').textContent=`🔌 ${TSel.l.split('\n')[0]} ↔ ${n.l.split('\n')[0]}`;}
+    TSel=null;
+  }
+}
+
+function topoCheck(){
+  const sc=SCENARIOS[TSc]; let ok=0;
+  sc.rq.forEach(([a,b])=>{if(TK.find(c=>(c[0]===a&&c[1]===b)||(c[0]===b&&c[1]===a)))ok++;});
+  const total=sc.rq.length;
+  if(ok===total){
+    $('topo-indicator').innerHTML=`<div class="status-row"><div class="status-chip sc-connected"><div class="status-dot"></div>CONNECTED — Semua ${total} koneksi benar!</div></div>`;
+    showTopoExplain(sc);
+    toast(`Jaringan ${sc.n} berhasil dirakit! 🎉 +30 XP`,'success',5000);
+    setProgress('topo',100);addXP(30);
+  } else {
+    $('topo-indicator').innerHTML=`<div class="status-row"><div class="status-chip sc-warning"><div class="status-dot"></div>${ok}/${total} koneksi — belum lengkap</div></div>`;
+    toast(`${ok}/${total} koneksi benar. Cek lagi!`,'warning');
+    setProgress('topo',Math.max(progressData.topo,Math.round((ok/total)*80)));
+  }
+}
+
+function showTopoExplain(sc){
+  $('topo-explain-sub').textContent='✅ Jaringan berhasil dirakit!';
+  const explMap={
+    'Jaringan Kelas Dasar':`<div class="ib green"><div class="ib-ico">🎉</div><div class="ib-txt"><strong>Selamat! Jaringan Star berhasil dibuat.</strong> Setiap PC terhubung ke Switch, Switch terhubung ke Router, dan Router terhubung ke Internet. Inilah topologi yang paling umum digunakan di rumah, sekolah, dan kantor.</div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+      <div class="glass-card" style="padding:12px"><div style="color:var(--cyan);font-weight:600;font-size:12px;margin-bottom:6px">📡 Alur Data</div><div style="font-size:12px;color:var(--text2);line-height:1.8">PC → Switch → Router → Internet</div></div>
+      <div class="glass-card" style="padding:12px"><div style="color:var(--cyan);font-weight:600;font-size:12px;margin-bottom:6px">✅ Keunggulan</div><div style="font-size:12px;color:var(--text2);line-height:1.8">Mudah dikelola, satu kabel putus tidak mengganggu semua</div></div></div>`,
+    'Jaringan Extended Star':`<div class="ib green"><div class="ib-ico">🎉</div><div class="ib-txt"><strong>Extended Star berhasil!</strong> Ini adalah pengembangan dari Star sederhana. Dua switch memungkinkan lebih banyak perangkat terhubung, dan server tersentralisasi untuk melayani semua klien.</div></div>`,
+    'Jaringan Mesh Core':`<div class="ib green"><div class="ib-ico">🎉</div><div class="ib-txt"><strong>Mesh Core berhasil!</strong> Topologi Mesh menyediakan jalur redundan antar router. Jika satu router mati, jalur lain masih bisa digunakan — ini yang dipakai di infrastruktur internet sesungguhnya.</div></div>`,
+  };
+  $('topo-explain-body').innerHTML=explMap[sc.n]||'<div class="ib green"><div class="ib-ico">🎉</div><div class="ib-txt">Jaringan berhasil dirakit!</div></div>';
+}
+
+// TOPO ANIMATION LOOP
+let flowCanvas,flowCtx,flowPhase=0,netConnected=false;
+function initFlowCanvas(){
+  flowCanvas=document.getElementById('canvas-flow');if(!flowCanvas)return;
+  flowCtx=flowCanvas.getContext('2d');
+  const r=flowCanvas.parentElement.getBoundingClientRect();flowCanvas.width=r.width-4;
+}
+
+function topoLoop(){
+  TAnimId=requestAnimationFrame(topoLoop); GF++;
+  if(!TX||!TC)return;
+  const c=TX,w=TC.width,h=TC.height;
+  c.fillStyle='#060f1e';c.fillRect(0,0,w,h);
+  // Subtle grid
+  c.strokeStyle='rgba(30,111,255,.04)';c.lineWidth=1;
+  for(let x=0;x<w;x+=36){c.beginPath();c.moveTo(x,0);c.lineTo(x,h);c.stroke();}
+  for(let y=0;y<h;y+=36){c.beginPath();c.moveTo(0,y);c.lineTo(w,y);c.stroke();}
+  // Stars
+  for(let i=0;i<20;i++){c.globalAlpha=.06+.04*Math.sin(i+GF*.015);c.fillStyle='#fff';c.beginPath();c.arc((i*173+GF*.05)%w,(i*97+GF*.04)%h,1,0,Math.PI*2);c.fill();}c.globalAlpha=1;
+  // Connections + packet
+  TK.forEach((cn,ci)=>{
+    const a=TN.find(n=>n.id===cn[0]),b=TN.find(n=>n.id===cn[1]);if(!a||!b)return;
+    const g=c.createLinearGradient(a.px,a.py,b.px,b.py);
+    g.addColorStop(0,TCOLORS[a.tp]||'#4da8ff');g.addColorStop(1,TCOLORS[b.tp]||'#4da8ff');
+    c.strokeStyle='#00d4ff';c.lineWidth=2.5;c.shadowColor='#00d4ff';c.shadowBlur=8;
+    c.beginPath();c.moveTo(a.px,a.py);c.lineTo(b.px,b.py);c.stroke();c.shadowBlur=0;
+    // Data packet moving along cable
+    const t=(GF*.009+ci*.33)%1;
+    const px=a.px+(b.px-a.px)*t,py=a.py+(b.py-a.py)*t;
+    c.fillStyle='#fff';c.shadowColor='#00d4ff';c.shadowBlur=14;
+    c.beginPath();c.arc(px,py,3,0,Math.PI*2);c.fill();c.shadowBlur=0;
+    [a,b].forEach(nd=>{c.beginPath();c.arc(nd.px,nd.py,4.5,0,Math.PI*2);c.fillStyle='#00d4ff55';c.fill();});
+  });
+  // Nodes
+  TN.forEach(n=>{
+    const cl=TCOLORS[n.tp]||'#888',sel=TSel&&TSel.id===n.id;
+    const breath=1+.06*Math.sin(GF*.04+(n.id.charCodeAt(0)*.3));
+    c.save();
+    c.shadowColor=sel?'#fff':cl;c.shadowBlur=sel?28:10+6*Math.abs(Math.sin(GF*.04));
+    c.beginPath();c.arc(n.px,n.py,20*breath,0,Math.PI*2);c.fillStyle=cl+'18';c.fill();
+    c.strokeStyle=sel?'#fff':cl;c.lineWidth=sel?2.5:1.8;c.globalAlpha=sel?1:.75+.25*Math.sin(GF*.04);
+    c.setLineDash(sel?[]:[4,4]);c.stroke();c.setLineDash([]);
+    c.beginPath();c.arc(n.px,n.py,14,0,Math.PI*2);c.fillStyle=cl+'22';c.fill();
+    c.restore();
+    c.font='15px serif';c.textAlign='center';c.textBaseline='middle';c.fillText(n.ic,n.px,n.py);
+    n.l.split('\n').forEach((l,i)=>{c.font='9px Inter';c.fillStyle=sel?'#fff':'#7a9abf';c.textAlign='center';c.textBaseline='top';c.fillText(l,n.px,n.py+22+i*11);});
+  });
+  // Flow canvas
+  drawFlow();
+}
+
+function drawFlow(){
+  if(!flowCanvas||!flowCtx)return;
+  const c=flowCtx,w=flowCanvas.width,h=flowCanvas.height;
+  c.fillStyle='#060f1e';c.fillRect(0,0,w,h);
+  const sc=SCENARIOS[TSc];
+  const allConnected=sc.rq.every(([a,b])=>TK.find(k=>(k[0]===a&&k[1]===b)||(k[0]===b&&k[1]===a)));
+  const nodes=[{l:'PC',ic:'💻'},{l:'Switch',ic:'🔀'},{l:'Router',ic:'🔴'},{l:'Internet',ic:'🌐'}];
+  const spacing=w/5,startX=spacing,cy=h/2;
+  // Line
+  c.strokeStyle=allConnected?'rgba(0,212,255,.3)':'rgba(255,255,255,.08)';c.lineWidth=2;c.setLineDash([6,6]);
+  c.beginPath();c.moveTo(startX,cy);c.lineTo(startX+spacing*3,cy);c.stroke();c.setLineDash([]);
+  if(allConnected){
+    flowPhase=(flowPhase||0)+.025;
+    const px=startX+(Math.sin(flowPhase)*.5+.5)*spacing*3;
+    c.fillStyle='#fff';c.shadowColor='#00d4ff';c.shadowBlur=16;c.beginPath();c.arc(px,cy,5,0,Math.PI*2);c.fill();c.shadowBlur=0;
+    for(let i=0;i<3;i++){const trailX=px-i*12*(Math.cos(flowPhase)>0?1:-1);c.fillStyle=`rgba(0,212,255,${.4-i*.12})`;c.beginPath();c.arc(trailX,cy,3-i,0,Math.PI*2);c.fill();}
+    $('flow-label').textContent='🔵 Data sedang mengalir: PC → Switch → Router → Internet';
+    $('flow-label').style.color='var(--cyan)';
+  } else {
+    $('flow-label').textContent='Hubungkan jaringan untuk melihat aliran data';
+    $('flow-label').style.color='var(--text3)';
+  }
+  nodes.forEach((n,i)=>{const x=startX+i*spacing;
+    c.fillStyle=allConnected?'rgba(0,212,255,.15)':'rgba(255,255,255,.06)';
+    c.beginPath();c.arc(x,cy,16,0,Math.PI*2);c.fill();
+    c.font='13px serif';c.textAlign='center';c.textBaseline='middle';c.fillText(n.ic,x,cy);
+    c.font='9px Inter';c.fillStyle=allConnected?'var(--cyan)':'#4a7a9b';c.textAlign='center';c.textBaseline='top';c.fillText(n.l,x,cy+20);
+  });
+}
+
+window.addEventListener('resize',()=>{if(TAB===1&&TC){resizeTopo();const sc=SCENARIOS[TSc];TN=sc.ns.map(n=>({...n,px:n.x*TC.width,py:n.y*TC.height}));}});
+
+// ═══════════════════════════════════════════════
+// PAGE 2 — HANDOFF SELULER
+// ═══════════════════════════════════════════════
+let HC,HX,RC,RX,HRun=false,HAng=0,UX=0,UY=0,UVX=0,UVY=0,CBTS='A',RSSH={A:[],B:[],C:[]};
+let HT=0,DCT=0,HFC=0,HMode='manual',Trail=[],BTSARR=[],HAnimId=null,HF_DROP_THRESHOLD=200;
+let HFState='IDLE',HFStateT=0,HFScenario='normal',HFTimer=0,HFDropped=false,HFCallDur=0;
+const HF_STATES=['IDLE','CONNECTED','SIGNAL WEAK','SEARCHING BTS','HANDOFF','CONNECTED','DROPPED'];
+
+function buildHandoff(){
+  const p=$('pg-handoff');if(p.dataset.built){resizeHandoff();return;}p.dataset.built='1';
+  p.innerHTML=`<div class="mw"><div class="grid2 split">
+<div class="flex-col">
+  <div class="card"><div class="ch"><div class="ch-ico" style="background:rgba(124,77,255,.15)">📶</div><div><div class="ch-title">Handoff Seluler</div><div class="ch-sub">Radar Coverage + RSSI Real-time</div></div></div><div class="cb">
+    <div class="ib amber"><div class="ib-ico">⚠️</div><div class="ib-txt"><strong>Misi:</strong> Mobile station bergerak otomatis. Pantau RSSI — tekan <strong>HANDOFF</strong> sebelum sinyal jatuh di bawah -85 dBm. Mode Otomatis 🤖 akan melakukan handoff cerdas!</div></div>
+    <div style="margin-bottom:12px"><div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Mode Simulasi</div>
+    <div class="mode-grp"><button class="mode-btn active" id="m-man" onclick="setHMode('manual')">🎮 Manual</button><button class="mode-btn" id="m-auto" onclick="setHMode('auto')">🤖 Otomatis</button></div></div>
+    <div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Skenario Simulasi</div>
+    <div class="scenario-grp">
+      <button class="scenario-btn active" id="sn-normal" onclick="setScenario('normal')">✅ Normal</button>
+      <button class="scenario-btn" id="sn-inter" onclick="setScenario('interference')">⚡ Interference</button>
+      <button class="scenario-btn" id="sn-over" onclick="setScenario('overload')">📊 BTS Overload</button>
+      <button class="scenario-btn" id="sn-weak" onclick="setScenario('weak')">📉 Weak Signal</button>
+    </div></div>
+    <div style="margin-bottom:12px"><div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Durasi Call Drop</div>
+    <div class="mode-grp">
+      <button class="mode-btn" onclick="setDropDur(100,this)">⚡ Cepat</button>
+      <button class="mode-btn active" onclick="setDropDur(200,this)">◆ Normal</button>
+      <button class="mode-btn" onclick="setDropDur(350,this)">🐢 Lambat</button>
+    </div></div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-val" id="h-ra" style="color:var(--blue3);font-size:18px">-</div><div class="stat-lbl">BTS-A (dBm)</div></div>
+      <div class="stat-box"><div class="stat-val" id="h-rb" style="color:var(--green);font-size:18px">-</div><div class="stat-lbl">BTS-B (dBm)</div></div>
+      <div class="stat-box"><div class="stat-val" id="h-rc" style="color:var(--violet);font-size:18px">-</div><div class="stat-lbl">BTS-C (dBm)</div></div>
+      <div class="stat-box"><div class="stat-val" id="h-cbts" style="color:var(--cyan)">-</div><div class="stat-lbl">Connected</div></div>
+      <div class="stat-box"><div class="stat-val" id="h-hc" style="color:var(--amber)">0</div><div class="stat-lbl">Handoff</div></div>
+      <div class="stat-box"><div class="stat-val" id="h-timer" style="color:var(--cyan);font-size:18px">00:00</div><div class="stat-lbl">Call Duration</div></div>
+    </div>
+    <div style="margin-top:14px"><div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Process State</div>
+    <div class="state-track" id="state-track"></div></div>
+    <div id="h-sig-str" style="margin-top:10px"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:center">
+      <button class="btn btn-primary btn-sm" onclick="hfStart()">▶ Mulai</button>
+      <button class="btn btn-secondary btn-sm" onclick="hfReset()">🔄 Reset</button>
+      <button class="btn btn-danger" id="hf-btn" onclick="doHF()" disabled>📡 HANDOFF!</button>
+    </div>
+    <div id="hf-fb" style="margin-top:12px;display:none"></div>
+  </div></div>
+
+  <div class="card"><div class="ch"><div class="ch-ico" style="background:rgba(0,212,255,.12)">📡</div><div><div class="ch-title">Generasi Seluler</div><div class="ch-sub">Timeline 1G → 5G</div></div></div><div class="cb">
+    <div class="gen-timeline">
+      ${[['1G','1980','Analog','Voice only, AMPS'],['2G','1991','GSM/CDMA','SMS, GPRS, 56 Kbps'],['3G','2001','WCDMA','Video call, 2 Mbps'],['4G','2009','LTE','Streaming, 100 Mbps'],['5G','2019','NR','IoT, 10 Gbps']].map(([g,y,t,d],i)=>`<div class="gen-item${i===3?' active-gen':''}" onclick="genClick(this)"><div class="gen-label">${g}</div><div class="gen-year">${y}</div><div class="gen-desc">${t}<br><span style="font-size:10px;opacity:.8">${d}</span></div></div>`).join('')}
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:6px">Klik pada generasi untuk melihat detail</div>
+  </div></div>
+
+  <div class="card"><div class="ch"><div class="ch-ico" style="background:rgba(255,179,0,.12)">📓</div><div><div class="ch-title">Catatan Materi</div></div></div><div class="cb" style="padding:0">
+  <div class="notebook"><div class="nb-lines"></div><div class="nb-rings"><div class="nb-ring"></div><div class="nb-ring"></div><div class="nb-ring"></div></div>
+  <span class="nb-date">Sistem Seluler — Handoff</span>
+  <h3>Handoff / Handover Seluler</h3>
+  <p><span class="nb-hl">BTS (Base Transceiver Station)</span> adalah menara pemancar sinyal yang melayani area cakupan tertentu disebut <em>sel</em>. Tiap BTS memiliki area cakupan berbentuk heksagonal.</p>
+  <p>Handoff diperlukan karena:</p>
+  <ul>
+    <li>Pengguna bergerak keluar area BTS</li>
+    <li>Sinyal (RSSI) turun di bawah threshold</li>
+    <li>Mencegah <span class="nb-tag">Drop Call</span></li>
+  </ul>
+  <p>Rumus: <span class="nb-f">RSSI_B > RSSI_A + Hysteresis</span></p>
+  <p>Hysteresis mencegah <span class="nb-tag">pingpong effect</span></p>
+  </div></div></div>
+
+  <div class="card"><div class="ch"><div class="ch-ico" style="background:rgba(30,111,255,.12)">📖</div><div><div class="ch-title">Materi Singkat</div><div class="ch-sub">Klik untuk detail lengkap</div></div></div><div class="cb">
+    ${[['bts','BTS','Pemancar sinyal seluler'],['sel','Konsep Sel','Area heksagonal cakupan BTS'],['handoff','Handoff','Perpindahan antar BTS']].map(k=>{const m=MATERI[k[0]];return `<div class="mat-mini" onclick="openModal('${k[0]}')"><div class="mat-mini-ic">${m.ico}</div><div class="mat-mini-body"><div class="mat-mini-t">${k[1]}</div><div class="mat-mini-d">${k[2]}</div><button class="mat-mini-btn">📖 Lihat Detail</button></div></div>`;}).join('')}
+  </div></div>
+</div>
+
+<div class="flex-col">
+  <div class="card"><div class="ch"><div class="ch-ico" style="background:rgba(124,77,255,.15)">🛰️</div><div><div class="ch-title">Radar Coverage BTS</div><div class="ch-sub">Posisi mobile + sinyal real-time</div></div></div><div class="cb-sm"><canvas id="canvas-radar" height="360"></canvas></div></div>
+  <div class="card"><div class="ch"><div class="ch-ico" style="background:rgba(0,212,255,.12)">📉</div><div><div class="ch-title">Grafik RSSI</div><div class="ch-sub">Signal Strength BTS-A & BTS-B</div></div></div><div class="cb-sm"><canvas id="canvas-rssi" height="160"></canvas></div></div>
+</div>
+</div></div>`;
+
+  HC=document.getElementById('canvas-radar');HX=HC.getContext('2d');
+  RC=document.getElementById('canvas-rssi');RX=RC.getContext('2d');
+  resizeHandoff();hfReset();if(!HAnimId)hfLoop();
+  setProgress('handoff',10);
+}
+
+function genClick(el){document.querySelectorAll('.gen-item').forEach(e=>e.classList.remove('active-gen'));el.classList.add('active-gen');}
+function resizeHandoff(){if(!HC)return;const rr=HC.parentElement.getBoundingClientRect();HC.width=rr.width-4;HC.height=360;const rs=RC.parentElement.getBoundingClientRect();RC.width=rs.width-4;RC.height=160;layoutBTS();}
+function setHMode(m){HMode=m;$('m-man').classList.toggle('active',m==='manual');$('m-auto').classList.toggle('active',m==='auto');$('hf-btn').style.display=m==='auto'?'none':'';toast(m==='auto'?'🤖 Mode otomatis aktif':'🎮 Mode manual','info');}
+function setDropDur(v,el){HF_DROP_THRESHOLD=v;document.querySelectorAll('.mode-grp .mode-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');toast('Durasi Drop Call: '+{100:'⚡ Cepat',200:'◆ Normal',350:'🐢 Lambat'}[v],'info');}
+function setScenario(s){HFScenario=s;['normal','interference','overload','weak'].forEach(k=>{const el=$('sn-'+(k==='interference'?'inter':k==='overload'?'over':k));if(el)el.classList.toggle('active',k===s);});hfReset();toast('Skenario: '+({normal:'✅ Normal',interference:'⚡ Interference',overload:'📊 BTS Overload',weak:'📉 Weak Signal'}[s]),'info');}
+
+function layoutBTS(){const w=HC.width,h=HC.height,r=Math.min(w,h)*.36;BTSARR=[{id:'A',x:w*.22,y:h*.38,r:r,color:'#4da8ff'},{id:'B',x:w*.78,y:h*.38,r:r,color:'#00e676'},{id:'C',x:w*.5,y:h*.78,r:r,color:'#a78bfa'}];}
+
+function hfReset(){HRun=false;HAng=0;HFC=0;CBTS='A';RSSH={A:[],B:[],C:[]};HT=0;DCT=0;Trail=[];HFState='IDLE';HFStateT=0;HFTimer=0;HFDropped=false;HFCallDur=0;
+  $('h-ra').textContent='-';$('h-rb').textContent='-';$('h-rc').textContent='-';$('h-cbts').textContent='-';$('hf-btn').disabled=true;$('h-hc').textContent='0';$('hf-fb').style.display='none';$('h-sig-str').innerHTML='';$('h-timer').textContent='00:00';
+  layoutBTS();const w=HC.width,h=HC.height;UX=BTSARR[0].x+BTSARR[0].r*.3;UY=BTSARR[0].y;UVX=1.0;UVY=.3;
+  updateStateTrack();const ov=document.querySelector('.drop-overlay');if(ov)ov.remove();
+}
+
+function calcRSSI(ux,uy,b){let d=Math.hypot(ux-b.x,uy-b.y),r=Math.min(1,d/b.r);let base=-45+(-110+45)*r*r;
+  // scenario modifiers
+  if(HFScenario==='interference')base+=(Math.sin(GF*.04+b.x*.01)*8); // fluktuasi besar
+  if(HFScenario==='overload'&&b.id===CBTS)base-=10; // BTS aktif kena overload
+  if(HFScenario==='weak')base-=8;
+  return Math.max(-110,Math.min(-45,base));
+}
+
+function hfStart(){if(HRun)return;HRun=true;HFState='CONNECTED';if(HMode==='manual')$('hf-btn').disabled=false;updateStateTrack();toast('Simulasi dimulai!','info');}
+
+function updateStateTrack(){const el=$('state-track');if(!el)return;
+  const states=['CONNECTED','SIGNAL WEAK','SEARCHING BTS','HANDOFF','CONNECTED'];
+  const idx=HFState==='IDLE'?-1:HFState==='DROPPED'?5:states.indexOf(HFState);
+  el.innerHTML=states.map((s,i)=>{let cls='';if(HFDropped&&i>0)cls='danger';else if(i<=idx)cls=s==='SIGNAL WEAK'?'warn':s==='HANDOFF'?'active':'ok';return `<div class="state-step ${cls}">${s}</div>`;}).join('');
+}
+
+function setState(s){if(HFState!==s){HFState=s;HFStateT=0;updateStateTrack();}}
+
+function hfLoop(){
+  HAnimId=requestAnimationFrame(hfLoop);GF++;
+  if(!HX||!HC)return;
+  if(HRun&&!HFDropped){
+    HT++;HFStateT++;HFTimer++;
+    if(HFTimer%60===0){HFCallDur++;const m=Math.floor(HFCallDur/60),s=HFCallDur%60;$('h-timer').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');}
+    // movement — circular smooth path
+    UX+=UVX;UY+=UVY+Math.sin(HT*.025)*.5;
+    if(UX>HC.width-18){UVX=-Math.abs(UVX);}if(UX<18){UVX=Math.abs(UVX);}
+    if(UY>HC.height-18)UVY=-.55;if(UY<18)UVY=.55;
+    if(HT%2===0)Trail.push({x:UX,y:UY,l:1,c:BTSARR.find(b=>b.id===CBTS)?.color||'#4da8ff'});
+    Trail.forEach(t=>t.l-=.022);Trail=Trail.filter(t=>t.l>0);
+    // RSSI calculation for 3 BTS
+    BTSARR.forEach(b=>{const r=calcRSSI(UX,UY,b);RSSH[b.id].push(r);if(RSSH[b.id].length>90)RSSH[b.id].shift();$('h-r'+b.id.toLowerCase()).textContent=r.toFixed(1);});
+    $('h-cbts').textContent='BTS-'+CBTS;
+    const curB=BTSARR.find(b=>b.id===CBTS);const aR=calcRSSI(UX,UY,curB);
+    // Signal strength bars
+    const bars=Math.max(0,Math.ceil((aR+110)/13));
+    $('h-sig-str').innerHTML=`<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)"><span style="color:var(--text3);font-weight:600">📶</span> ${[1,2,3,4,5].map(b=>`<span style="font-size:18px;color:${b<=bars?(aR>-70?'var(--green)':aR>-85?'var(--amber)':'var(--red)'):'#1e3a5f'}">▮</span>`).join('')} <span style="font-family:var(--mono);font-weight:700;color:${aR>-70?'var(--green)':aR>-85?'var(--amber)':'var(--red)'}">${aR.toFixed(0)} dBm</span></div>`;
+    // STATE MACHINE
+    if(HFState==='CONNECTED'&&aR<-78)setState('SIGNAL WEAK');
+    else if(HFState==='SIGNAL WEAK'&&aR>=-72)setState('CONNECTED');
+    else if(HFState==='SIGNAL WEAK'&&HFStateT>120)setState('SEARCHING BTS');
+    if(HMode==='auto'&&HRun&&(HFState==='SIGNAL WEAK'||HFState==='SEARCHING BTS')){
+      const best=BTSARR.filter(b=>b.id!==CBTS).map(b=>({id:b.id,r:calcRSSI(UX,UY,b)})).sort((a,b)=>b.r-a.r)[0];
+      if(best&&best.r>aR+5)doAutoHF(best.id);
+    }
+    if(aR<-95){DCT++;if(DCT>HF_DROP_THRESHOLD)doDropCall();}else DCT=Math.max(0,DCT-1);
+    HAng=(HAng+2)%360;
+  }
+  drawRadar();drawRSSI();
+}
+
+function doAutoHF(target){const old=CBTS;CBTS=target;HFC++;DCT=0;$('h-hc').textContent=HFC;setState('HANDOFF');setTimeout(()=>{if(HRun)setState('CONNECTED');},800);toast(`🤖 Auto-Handoff BTS-${old} → BTS-${target}`,'success',2000);setProgress('handoff',Math.min(100,progressData.handoff+12));addXP(8);}
+
+function doDropCall(){HRun=false;HFDropped=true;setState('DROPPED');$('hf-btn').disabled=true;$('hf-fb').style.display='block';
+  const causeMap={normal:'sinyal turun terlalu lama tanpa handoff',interference:'interferensi sinyal yang berat',overload:'BTS overload dan tidak bisa melayani lagi',weak:'sinyal lemah di seluruh area cakupan'};
+  $('hf-fb').innerHTML=`<div class="ib red"><div class="ib-ico">📵</div><div class="ib-txt"><strong>CALL DROPPED!</strong> Panggilan terputus karena ${causeMap[HFScenario]}. Durasi panggilan: ${$('h-timer').textContent}.</div></div>`;
+  // overlay
+  const wrap=HC.parentElement;wrap.style.position='relative';const ov=document.createElement('div');ov.className='drop-overlay';ov.innerHTML='<div class="drop-text">📵 CALL DROPPED</div>';wrap.appendChild(ov);
+  toast('Call Dropped!','error',5000);
+}
+
+function doHF(){
+  if(!HRun||HMode==='auto'||HFDropped)return;
+  const rs=BTSARR.map(b=>({id:b.id,r:calcRSSI(UX,UY,b)})).sort((a,b)=>b.r-a.r);
+  const best=rs[0];const fb=$('hf-fb');fb.style.display='block';
+  if(best.id!==CBTS&&best.r>calcRSSI(UX,UY,BTSARR.find(b=>b.id===CBTS))+3){
+    const old=CBTS;CBTS=best.id;HFC++;DCT=0;$('h-hc').textContent=HFC;setState('HANDOFF');setTimeout(()=>{if(HRun)setState('CONNECTED');},800);
+    fb.innerHTML=`<div class="ib green"><div class="ib-ico">✅</div><div class="ib-txt"><strong>Handoff Berhasil!</strong> Koneksi BTS-${old} → BTS-${best.id} (${best.r.toFixed(1)} dBm). State: CONNECTED.</div></div>`;
+    toast(`✅ Handoff → BTS-${best.id}!`,'success');setProgress('handoff',Math.min(100,progressData.handoff+18));addXP(15);
+  }else{fb.innerHTML=`<div class="ib amber"><div class="ib-ico">⚠️</div><div class="ib-txt"><strong>Handoff belum diperlukan.</strong> BTS-${CBTS} masih cukup kuat (atau BTS lain belum lebih baik).</div></div>`;toast('Belum diperlukan!','warning');}
+}
+
+function drawRadar(){
+  const c=HX,w=HC.width,h=HC.height;c.fillStyle='#020a14';c.fillRect(0,0,w,h);
+  // stars
+  for(let i=0;i<22;i++){c.globalAlpha=.06+.03*Math.sin(i+GF*.012);c.fillStyle='#fff';c.beginPath();c.arc((i*179+GF*.08)%w,(i*83+GF*.06)%h,1,0,Math.PI*2);c.fill();}c.globalAlpha=1;
+  // grid
+  c.strokeStyle='rgba(30,111,255,.04)';c.lineWidth=1;for(let x=0;x<w;x+=36){c.beginPath();c.moveTo(x,0);c.lineTo(x,h);c.stroke();}for(let y=0;y<h;y+=36){c.beginPath();c.moveTo(0,y);c.lineTo(w,y);c.stroke();}
+  // interference noise overlay
+  if(HFScenario==='interference'&&HRun){c.fillStyle='rgba(255,68,68,'+(.04+.03*Math.sin(GF*.08))+')';c.fillRect(0,0,w,h);}
+  // 3 BTS
+  BTSARR.forEach(b=>{
+    const active=CBTS===b.id;const pulse=1+.015*Math.sin(GF*.03+b.x*.01);
+    // Coverage
+    c.beginPath();c.arc(b.x,b.y,b.r*pulse,0,Math.PI*2);
+    c.strokeStyle=b.color+(active?'aa':'33');c.lineWidth=active?2.5:1.2;c.setLineDash([6,6]);c.stroke();c.setLineDash([]);c.fillStyle=b.color+'06';c.fill();
+    // inner rings
+    for(let r=b.r*.25;r<b.r;r+=b.r*.25){c.beginPath();c.arc(b.x,b.y,r,0,Math.PI*2);c.strokeStyle=b.color+'12';c.lineWidth=1;c.stroke();}
+    // wave rings
+    if(HRun){for(let wv=0;wv<2;wv++){const wr=b.r*.15+((GF*.008+wv*.5)%1)*b.r*.7;const alpha=Math.floor(20*(1-((GF*.008+wv*.5)%1))).toString(16).padStart(2,'0');c.beginPath();c.arc(b.x,b.y,wr,0,Math.PI*2);c.strokeStyle=b.color+alpha;c.lineWidth=1.2;c.stroke();}}
+    // BTS tower
+    c.save();c.shadowColor=b.color;c.shadowBlur=active?22:10;c.fillStyle=b.color;c.beginPath();c.arc(b.x,b.y,active?13:8,0,Math.PI*2);c.fill();c.restore();
+    c.strokeStyle='rgba(255,255,255,.5)';c.lineWidth=.8;c.beginPath();c.moveTo(b.x-6,b.y);c.lineTo(b.x+6,b.y);c.moveTo(b.x,b.y-6);c.lineTo(b.x,b.y+6);c.stroke();
+    c.fillStyle='#fff';c.font='bold 10px Inter';c.textAlign='center';c.textBaseline='middle';c.fillText('BTS',b.x,b.y-1);
+    // sweep
+    const sr=HAng*Math.PI/180+b.x*.005;const grad=c.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r);grad.addColorStop(0,b.color+'50');grad.addColorStop(1,b.color+'00');
+    c.save();c.globalAlpha=.3;c.beginPath();c.moveTo(b.x,b.y);c.arc(b.x,b.y,b.r,sr-.4,sr);c.closePath();c.fillStyle=grad;c.fill();c.restore();
+    c.fillStyle=b.color;c.font='11px Inter';c.textAlign='center';c.textBaseline='top';c.fillText('BTS-'+b.id,b.x,b.y+18);
+    // overload badge
+    if(HFScenario==='overload'&&active){c.fillStyle='rgba(255,68,68,.85)';c.font='bold 9px Inter';c.fillText('OVERLOAD',b.x,b.y-22);}
+  });
+  // trail
+  Trail.forEach(p=>{c.beginPath();c.arc(p.x,p.y,2.5*p.l,0,Math.PI*2);c.fillStyle=p.c+(Math.floor(p.l*55)).toString(16).padStart(2,'0');c.fill();});
+  // user
+  const curB=BTSARR.find(b=>b.id===CBTS);const aR=curB?calcRSSI(UX,UY,curB):-100;const uCl=curB?.color||'#4da8ff';
+  c.save();c.shadowColor=uCl;c.shadowBlur=18+5*Math.sin(GF*.08);c.fillStyle=uCl;c.beginPath();c.arc(UX,UY,9,0,Math.PI*2);c.fill();c.restore();
+  c.fillStyle='#fff';c.beginPath();c.arc(UX,UY,3.5,0,Math.PI*2);c.fill();
+  c.font='13px serif';c.textAlign='center';c.textBaseline='middle';c.fillText('📱',UX,UY);
+  // signal line
+  if(curB){const sA=Math.max(0,Math.min(1,(aR+50)/65));c.strokeStyle=uCl+(Math.floor(sA*255)).toString(16).padStart(2,'0').slice(0,2);c.lineWidth=1.5;c.setLineDash([3,5]);c.beginPath();c.moveTo(UX,UY);c.lineTo(curB.x,curB.y);c.stroke();c.setLineDash([]);}
+  // warnings
+  if(HFState==='SIGNAL WEAK'&&HRun){c.fillStyle=`rgba(255,179,0,${.4+.25*Math.sin(HT*.12)})`;c.font='bold 11px Inter';c.textAlign='center';c.fillText('⚠ SIGNAL WEAK',w/2,18);}
+  if(HFState==='SEARCHING BTS'&&HRun){c.fillStyle=`rgba(255,68,68,${.4+.3*Math.sin(HT*.18)})`;c.font='bold 11px Inter';c.textAlign='center';c.fillText('🔍 SEARCHING BTS...',w/2,18);}
+  if(HMode==='auto'&&HRun){c.fillStyle='rgba(0,212,255,.7)';c.font='bold 10px Inter';c.textAlign='right';c.fillText('🤖 AUTO',w-10,16);}
+}
+
+function drawRSSI(){
+  const c=RX,w=RC.width,h=RC.height;c.fillStyle='#020a14';c.fillRect(0,0,w,h);
+  c.strokeStyle='rgba(255,255,255,.04)';c.lineWidth=1;for(let y=0;y<h;y+=20){c.beginPath();c.moveTo(0,y);c.lineTo(w,y);c.stroke();}
+  // Threshold lines: -85 weak, -95 drop
+  [['#ffb300','-85','-85 weak'],['#ff4444','-95','-95 drop']].forEach(([cl,thr,lbl])=>{const v=parseInt(thr);const thY=h*(1-(v+110)/65);c.strokeStyle=cl+'88';c.lineWidth=1.2;c.setLineDash([4,4]);c.beginPath();c.moveTo(0,thY);c.lineTo(w,thY);c.stroke();c.setLineDash([]);c.fillStyle=cl+'cc';c.font='9px Inter';c.textAlign='right';c.fillText(lbl,w-4,thY-3);});
+  const toY=r=>h*(1-(r+110)/65);
+  [['A','#4da8ff'],['B','#00e676'],['C','#a78bfa']].forEach(([lbl,cl])=>{
+    const hist=RSSH[lbl];if(!hist||hist.length<2)return;
+    c.strokeStyle=cl+(CBTS===lbl?'ff':'55');c.lineWidth=CBTS===lbl?2.5:1.3;c.shadowColor=cl;c.shadowBlur=CBTS===lbl?6:0;
+    c.beginPath();hist.forEach((v,i)=>{const x=(i/89)*w,y=Math.max(1,Math.min(h-1,toY(v)));if(i===0)c.moveTo(x,y);else c.lineTo(x,y);});c.stroke();c.shadowBlur=0;
+    if(hist.length>0){const ly=Math.max(10,Math.min(h-10,toY(hist[hist.length-1])));c.fillStyle=cl;c.font='bold 9px Inter';c.textAlign='right';c.fillText('BTS-'+lbl,w-4,ly-2);}
+  });
+}
+window.addEventListener('resize',()=>{if(TAB===2)resizeHandoff();});
+
+// ═══════════════════════════════════════════════
+// PAGE 3 — NETWORK TROUBLESHOOTING
+// ═══════════════════════════════════════════════
+let NC,NX,NNodes=[],NLinks=[],NSel=null,NSci=0,NAnimId=null,NPP=0;
+const SCENARIOS_NOC=[
+  {n:'Kabel Putus', icon:'🔌',
+   ns:[{id:'rt',l:'Router',tp:'rt',x:.5,y:.07,s:'ok',ip:'.1'},{id:'s1',l:'SW-Main',tp:'sw',x:.5,y:.3,s:'ok',ip:'.2'},{id:'s2',l:'SW-Lab\n⚠',tp:'sw',x:.25,y:.58,s:'err',ip:'.3'},{id:'sv',l:'Server\n.50',tp:'sv',x:.75,y:.58,s:'ok',ip:'.50'},{id:'pl',l:'PC-Lab',tp:'pc',x:.08,y:.86,s:'err',ip:'2.10'},{id:'p2',l:'PC-Office',tp:'pc',x:.4,y:.86,s:'ok',ip:'2.11'}],
+   lk:[['rt','s1'],['s1','s2'],['s1','sv'],['s2','pl'],['s2','p2']],en:['s2','pl'],fx:'cable',
+   lg:[{t:'09:05:11',l:'err',m:'Link down: Fa0/3 SW-Lab — no carrier signal'},{t:'09:05:12',l:'err',m:'PC-Lab (192.168.2.10) unreachable'},{t:'09:05:15',l:'warn',m:'CRC errors count: 4721 (threshold: 100)'},{t:'09:05:20',l:'info',m:'Diagnosis: Physical cable fault on port Fa0/3'},{t:'09:05:22',l:'info',m:'Action: Replace UTP cable on port Fa0/3'}],
+   fxMsg:'Kabel diganti! SW-Lab ↔ PC-Lab link kembali aktif.',penyebab:'Kabel UTP pada port Fa0/3 mengalami kerusakan fisik (putus/konektor longgar).',
+   checklist:['Cek LED port pada switch','Cek kondisi konektor RJ45','Tes dengan cable tester','Ganti kabel dengan yang baru','Verifikasi dengan ping']},
+  {n:'Router Mati', icon:'🔴',
+   ns:[{id:'wan',l:'WAN/ISP',tp:'int',x:.5,y:.07,s:'ok',ip:'203.0.x.1'},{id:'rt',l:'Router\n⚠CRASH',tp:'rt',x:.5,y:.28,s:'err',ip:'.1'},{id:'sw',l:'Core SW',tp:'sw',x:.5,y:.54,s:'warn',ip:'.2'},{id:'p1',l:'PC-1',tp:'pc',x:.1,y:.84,s:'warn',ip:'.10'},{id:'p2',l:'PC-2',tp:'pc',x:.34,y:.84,s:'warn',ip:'.11'},{id:'sv',l:'Web .50',tp:'sv',x:.62,y:.84,s:'warn',ip:'.50'},{id:'p3',l:'PC-3',tp:'pc',x:.88,y:.84,s:'warn',ip:'.12'}],
+   lk:[['wan','rt'],['rt','sw'],['sw','p1'],['sw','p2'],['sw','sv'],['sw','p3']],en:['rt'],fx:'reboot',
+   lg:[{t:'10:30:00',l:'err',m:'CRITICAL: Gateway 192.168.1.1 kernel panic / crash'},{t:'10:30:01',l:'err',m:'All hosts lost internet — default route unreachable'},{t:'10:30:03',l:'warn',m:'Router firmware v1.2 (2018) OUTDATED'},{t:'10:30:08',l:'info',m:'Diagnosis: Firmware crash atau hardware overheating'},{t:'10:30:10',l:'info',m:'Action: Update firmware v3.4 + reboot gateway'}],
+   fxMsg:'Gateway di-reboot! Internet kembali normal untuk semua host.',penyebab:'Router mengalami firmware crash akibat versi firmware yang sudah sangat lama (2018).',
+   checklist:['Cek lampu indikator router','Cek kabel power & UPS','Cek suhu router (overheating)','Update firmware ke versi terbaru','Reboot router dengan tombol fisik']},
+  {n:'Port Error', icon:'🔗',
+   ns:[{id:'rt',l:'Router',tp:'rt',x:.5,y:.07,s:'ok',ip:'.1'},{id:'sw',l:'Switch\n⚠Port 5',tp:'sw',x:.5,y:.32,s:'err',ip:'.2'},{id:'p1',l:'PC-1',tp:'pc',x:.15,y:.7,s:'ok',ip:'.10'},{id:'p2',l:'PC-2',tp:'pc',x:.4,y:.7,s:'ok',ip:'.11'},{id:'p3',l:'PC-3\n⚠Port',tp:'pc',x:.65,y:.7,s:'err',ip:'.12'},{id:'sv',l:'Server',tp:'sv',x:.9,y:.7,s:'ok',ip:'.50'}],
+   lk:[['rt','sw'],['sw','p1'],['sw','p2'],['sw','p3'],['sw','sv']],en:['sw','p3'],fx:'port',
+   lg:[{t:'13:22:01',l:'err',m:'Port Fa0/5: errDisabled (security violation)'},{t:'13:22:02',l:'err',m:'PC-3 (192.168.1.12) cannot ping gateway'},{t:'13:22:05',l:'warn',m:'STP loop detected, port auto-shutdown'},{t:'13:22:08',l:'info',m:'Diagnosis: Port security/STP shutdown port Fa0/5'},{t:'13:22:10',l:'info',m:'Action: Reset port — no shutdown + clear errdisable'}],
+   fxMsg:'Port Fa0/5 di-reset! PC-3 kembali terhubung ke jaringan.',penyebab:'Port switch mengalami errDisabled karena pelanggaran port security atau loop STP.',
+   checklist:['Cek status port (show interface)','Lihat alasan errdisable','Bersihkan loop STP / MAC violation','Konfigurasi ulang port security','Aktifkan kembali port (no shutdown)']},
+  {n:'IP Conflict', icon:'🌐',
+   ns:[{id:'rt',l:'Router',tp:'rt',x:.5,y:.07,s:'ok',ip:'.1'},{id:'sw',l:'Switch',tp:'sw',x:.5,y:.3,s:'ok',ip:'.2'},{id:'p1',l:'PC-A\n.10',tp:'pc',x:.15,y:.68,s:'err',ip:'.10'},{id:'p2',l:'PC-B\n.10',tp:'pc',x:.4,y:.68,s:'err',ip:'.10'},{id:'p3',l:'PC-C',tp:'pc',x:.65,y:.68,s:'ok',ip:'.11'},{id:'sv',l:'Server',tp:'sv',x:.9,y:.68,s:'ok',ip:'.100'}],
+   lk:[['rt','sw'],['sw','p1'],['sw','p2'],['sw','p3'],['sw','sv']],en:['p1','p2'],fx:'ip',
+   lg:[{t:'14:10:01',l:'err',m:'Duplicate IP 192.168.1.10 detected'},{t:'14:10:02',l:'err',m:'ARP conflict: 2 MAC claim same IP'},{t:'14:10:05',l:'warn',m:'PC-A & PC-B intermittent connection'},{t:'14:10:08',l:'info',m:'Diagnosis: IP address collision pada PC-A dan PC-B'},{t:'14:10:10',l:'info',m:'Action: Ubah IP salah satu PC (192.168.1.12)'}],
+   fxMsg:'IP PC-B diubah menjadi 192.168.1.12! Konflik terselesaikan.',penyebab:'Dua PC dikonfigurasi dengan IP statis yang sama (192.168.1.10) sehingga terjadi konflik ARP.',
+   checklist:['Cek arp -a untuk lihat MAC duplikat','Identifikasi PC dengan IP sama','Ubah IP salah satu PC (atau aktifkan DHCP)','Restart NIC pada PC tersebut','Verifikasi dengan ping']},
+  {n:'VLAN Salah', icon:'🔀',
+   ns:[{id:'rt',l:'Router',tp:'rt',x:.5,y:.07,s:'ok',ip:'.1'},{id:'sw',l:'L3-SW\n⚠VLAN',tp:'sw',x:.5,y:.3,s:'err',ip:'.2'},{id:'hr',l:'Dept HR\nV10',tp:'pc',x:.1,y:.68,s:'err',ip:'10.0.10.5'},{id:'it',l:'Dept IT\nV20',tp:'pc',x:.36,y:.68,s:'ok',ip:'10.0.20.5'},{id:'sv',l:'Server\nV50',tp:'sv',x:.62,y:.68,s:'err',ip:'10.0.50.100'},{id:'mg',l:'MGMT\nV99',tp:'pc',x:.88,y:.68,s:'ok',ip:'10.0.99.5'}],
+   lk:[['rt','sw'],['sw','hr'],['sw','it'],['sw','sv'],['sw','mg']],en:['sw','hr','sv'],fx:'vlan',
+   lg:[{t:'11:45:00',l:'err',m:'VLAN 10 (HR) cannot reach VLAN 50 (Server)'},{t:'11:45:02',l:'err',m:'Native VLAN mismatch on trunk port Gi0/1'},{t:'11:45:05',l:'warn',m:'VLAN 50 not in trunk allowed-list'},{t:'11:45:08',l:'info',m:'Diagnosis: Misconfigured VLAN trunk pada L3 switch'},{t:'11:45:10',l:'info',m:'Action: Update trunk config — allow VLAN 10,20,50,99'}],
+   fxMsg:'Konfigurasi VLAN trunk diperbaiki! Semua departemen kini bisa saling berkomunikasi.',penyebab:'VLAN trunk pada switch tidak dikonfigurasi dengan benar — VLAN 50 tidak masuk dalam allowed list.',
+   checklist:['Cek show vlan brief','Cek native VLAN trunk','Pastikan VLAN ada di allowed-list','Konfigurasi inter-VLAN routing','Verifikasi dengan ping antar VLAN']},
+];
+
+const ACTIONS_MAP={cable:'🔌 Ganti Kabel',reboot:'🔄 Reboot Device',vlan:'🔗 Reset VLAN',ip:'🌐 Rekonfig IP',port:'🔗 Reset Port',firmware:'⚙️ Update Firmware'};
+function buildNOC(){
+  const p=$('pg-noc');if(p.dataset.built){resizeNOC();return;}p.dataset.built='1';
+  p.innerHTML=`<div class="mw"><div class="grid2 split">
+<div class="flex-col">
+  <div class="card"><div class="ch"><div class="ch-ico" style="background:rgba(255,68,68,.12)">🖥️</div><div><div class="ch-title">Network Troubleshooting</div><div class="ch-sub">Diagnostik & Perbaikan Jaringan</div></div></div><div class="cb">
+    <div class="ib amber"><div class="ib-ico">🔧</div><div class="ib-txt"><strong>Cara kerja:</strong> Klik node yang bermasalah pada diagram → baca diagnostic log → pilih tindakan perbaikan yang tepat!</div></div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px" id="noc-actions"></div>
+    <div id="noc-status-panel" style="margin-bottom:12px">
+      <div class="status-row">
+        <div class="status-chip sc-connected"><div class="status-dot"></div>ONLINE: <span id="noc-online-count">-</span></div>
+        <div class="status-chip sc-disconnected"><div class="status-dot"></div>OFFLINE: <span id="noc-offline-count">-</span></div>
+        <div class="status-chip sc-warning"><div class="status-dot"></div>WARNING: <span id="noc-warn-count">-</span></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="nocNext()">🎲 Skenario Baru</button><button class="btn btn-secondary btn-sm" onclick="nocReset()">🔄 Reset</button></div>
+    <div id="noc-res" style="margin-top:12px;display:none"></div>
+  </div></div>
+
+  <div class="card"><div class="ch"><div class="ch-ico" style="background:rgba(30,111,255,.12)">📖</div><div><div class="ch-title">Materi Singkat</div><div class="ch-sub">Klik untuk detail lengkap</div></div></div><div class="cb">
+    <div class="mat-mini" onclick="openModal('troubleshoot')"><div class="mat-mini-ic">🔧</div><div class="mat-mini-body"><div class="mat-mini-t">Troubleshooting Jaringan</div><div class="mat-mini-d">Proses diagnosis sistematis OSI</div><button class="mat-mini-btn">📖 Lihat Detail</button></div></div>
+    <div style="margin-top:14px"><div class="section-tag">✅ Diagnostic Checklist</div>
+    <div style="display:flex;flex-direction:column;gap:5px">
+      ${['Cek fisik: kabel, LED port, daya','Cek konfigurasi IP & gateway (ipconfig)','Ping gateway → DNS → internet','Cek konfigurasi VLAN & routing','Restart perangkat (last resort)','Dokumentasikan akar masalah & solusi'].map((s,i)=>`<div style="font-size:12px;color:var(--text2);padding:8px 10px;background:rgba(0,212,255,.04);border-radius:6px;border-left:3px solid var(--cyan);display:flex;gap:8px;align-items:center"><span style="color:var(--cyan);font-weight:700;font-family:var(--mono);font-size:11px">${i+1}.</span>${s}</div>`).join('')}
+    </div></div>
+  </div></div>
+
+  <div class="card"><div class="ch"><div class="ch-ico" style="background:rgba(255,179,0,.12)">📓</div><div><div class="ch-title">Catatan Praktikum</div></div></div><div class="cb" style="padding:0">
+  <div class="notebook"><div class="nb-lines"></div><div class="nb-rings"><div class="nb-ring"></div><div class="nb-ring"></div><div class="nb-ring"></div></div>
+  <span class="nb-date">NOC — Network Troubleshooting</span>
+  <h3>NOC & Troubleshooting</h3>
+  <p>NOC = <span class="nb-hl">Network Operations Center</span> — pusat monitoring dan pengelolaan jaringan 24/7.</p>
+  <ul>
+    <li><span class="nb-tag">Ping</span> — ICMP Echo, cek konektivitas</li>
+    <li><span class="nb-tag">Traceroute</span> — Lacak jalur hop-by-hop</li>
+    <li><span class="nb-tag">ARP -a</span> — Lihat IP-to-MAC table</li>
+    <li><span class="nb-tag">ipconfig</span> — Cek konfigurasi IP</li>
+  </ul>
+  <p style="margin-top:8px">Pendekatan: <span class="nb-f">OSI Bottom-Up</span></p>
+  <p>Layer 1 → 2 → 3 → dst.</p>
+  </div></div></div>
+</div>
+
+<div class="flex-col">
+  <div class="card"><div class="ch"><div class="ch-ico" style="background:rgba(255,68,68,.12)">🗺️</div><div><div class="ch-title">Network Topology Diagram</div><div class="ch-sub">Klik node merah/kuning untuk diagnosa</div></div></div><div class="cb-sm"><canvas id="canvas-noc" height="380"></canvas></div></div>
+  <div class="card"><div class="ch"><div class="ch-ico" style="background:rgba(0,212,255,.12)">📋</div><div><div class="ch-title">Diagnostic Log</div><div class="ch-sub" id="noc-sel-lbl">Pilih node yang bermasalah</div></div></div><div class="cb-sm">
+    <div class="noc-log" id="noc-log"><div class="log-line"><span class="log-t">--:--:--</span><span class="log-lv info">[INFO]</span><span class="log-m">NOC System Ready. Klik node untuk diagnosa.</span></div></div>
+  </div></div>
+  <div class="card"><div class="ch"><div class="ch-ico" style="background:rgba(0,230,118,.12)">💡</div><div><div class="ch-title">Penjelasan Skenario</div><div class="ch-sub" id="noc-sc-name">-</div></div></div><div class="cb" id="noc-explain">
+    <div class="ib cyan"><div class="ib-ico">🔍</div><div class="ib-txt">Pilih tindakan perbaikan yang tepat untuk menyelesaikan skenario ini.</div></div>
+  </div></div>
+</div>
+</div></div>`;
+
+  NC=document.getElementById('canvas-noc');NX=NC.getContext('2d');
+  NC.addEventListener('click',nocClick);NC.addEventListener('touchstart',e=>{e.preventDefault();if(e.touches[0])nocClick({clientX:e.touches[0].clientX,clientY:e.touches[0].clientY});},{passive:false});
+  resizeNOC();nocLoad(0);if(!NAnimId)nocLoop();setProgress('noc',10);
+}
+
+function resizeNOC(){if(!NC)return;const r=NC.parentElement.getBoundingClientRect();NC.width=r.width-4;NC.height=380;}
+
+function buildNOCActions(sc){
+  const div=$('noc-actions');div.innerHTML='';
+  const fixAction=sc.fx;
+  Object.entries(ACTIONS_MAP).forEach(([k,v])=>{const b=document.createElement('button');b.className='act-btn';b.textContent=v;b.onclick=()=>nocAct(k,sc);div.appendChild(b);});
+}
+
+function updateNOCStatus(){
+  const ok=NNodes.filter(n=>n.s==='ok').length;
+  const err=NNodes.filter(n=>n.s==='err').length;
+  const warn=NNodes.filter(n=>n.s==='warn').length;
+  $('noc-online-count').textContent=ok;$('noc-offline-count').textContent=err;$('noc-warn-count').textContent=warn;
+}
+
+function nocLoad(i){
+  NSci=i;NSel=null;const sc=SCENARIOS_NOC[i];
+  const w=NC.width,h=NC.height;
+  NNodes=sc.ns.map(n=>({...n,px:n.x*w,py:n.y*h}));NLinks=sc.lk;
+  $('noc-res').style.display='none';$('noc-sel-lbl').textContent='Pilih node yang bermasalah';
+  const chk=(sc.checklist||[]).map((c,i)=>`<div style="display:flex;gap:8px;padding:6px 0;font-size:12px;color:var(--text2)"><span style="color:var(--cyan);font-weight:700;font-family:var(--mono);min-width:18px">${i+1}.</span>${c}</div>`).join('');
+  $('noc-explain').innerHTML=`<div class="ib cyan"><div class="ib-ico">🔍</div><div class="ib-txt">Skenario: <strong>${sc.n}</strong> ${sc.icon} — Klik node merah untuk membaca log diagnostic.</div></div>${chk?`<div style="margin-top:10px"><div class="section-tag">📋 Diagnostic Checklist</div>${chk}</div>`:''}`;
+  $('noc-sc-name').textContent=sc.n+' '+sc.icon;
+  document.querySelectorAll('.act-btn').forEach(b=>b.classList.remove('sel'));
+  buildNOCActions(sc);updateNOCStatus();
+  $('noc-log').innerHTML=`<div class="log-line"><span class="log-t">--:--:--</span><span class="log-lv info">[INFO]</span><span class="log-m">Skenario dimuat: ${sc.n}</span></div>`;
+  toast('Skenario: '+sc.n+' '+sc.icon,'info');
+}
+function nocNext(){NSci=(NSci+1)%SCENARIOS_NOC.length;nocLoad(NSci);}
+function nocReset(){nocLoad(NSci);}
+
+function nocLoop(){NAnimId=requestAnimationFrame(nocLoop);GF++;NPP+=.01;if(NX)nocDraw();}
+const NCOL={ok:'#00e676',err:'#ff4444',warn:'#ffb300'};const NICONS={rt:'🔴',sw:'🔀',sv:'🖥️',pc:'💻',int:'🌐'};
+
+function nocDraw(){
+  const c=NX,w=NC.width,h=NC.height;c.fillStyle='#040c18';c.fillRect(0,0,w,h);
+  for(let i=0;i<18;i++){c.globalAlpha=.06+.03*Math.sin(i+NPP);c.fillStyle='#fff';c.beginPath();c.arc((i*193+NPP*90)%w,(i*127+NPP*55)%h,1,0,Math.PI*2);c.fill();}c.globalAlpha=1;
+  c.strokeStyle='rgba(0,212,255,.04)';c.lineWidth=1;for(let x=0;x<w;x+=40){c.beginPath();c.moveTo(x,0);c.lineTo(x,h);c.stroke();}for(let y=0;y<h;y+=40){c.beginPath();c.moveTo(0,y);c.lineTo(w,y);c.stroke();}
+
+  NLinks.forEach(([aid,bid],li)=>{
+    const a=NNodes.find(n=>n.id===aid),b=NNodes.find(n=>n.id===bid);if(!a||!b)return;
+    const he=a.s==='err'||b.s==='err';
+    c.strokeStyle=he?'rgba(255,68,68,.4)':'rgba(0,230,118,.3)';c.lineWidth=2;if(he)c.setLineDash([5,4]);
+    c.shadowColor=he?'#ff4444':'#00e676';c.shadowBlur=4;c.beginPath();c.moveTo(a.px,a.py);c.lineTo(b.px,b.py);c.stroke();c.setLineDash([]);c.shadowBlur=0;
+    if(!he){const t=((NPP+li*.4)%1);const px=a.px+(b.px-a.px)*t,py=a.py+(b.py-a.py)*t;c.fillStyle='rgba(0,212,255,.65)';c.beginPath();c.arc(px,py,2.5,0,Math.PI*2);c.fill();}
+  });
+
+  NNodes.forEach(n=>{
+    const cl=NCOL[n.s]||'#888',sel=NSel&&NSel.id===n.id,fl=n.s==='err'?Math.sin(GF*.12)*.4+.6:1;
+    c.save();c.shadowColor=sel?'#fff':cl;c.shadowBlur=sel?24:10+(n.s==='err'?8:0);c.globalAlpha=fl;
+    c.beginPath();c.arc(n.px,n.py,sel?19:15,0,Math.PI*2);c.fillStyle=cl+'16';c.fill();
+    c.strokeStyle=sel?'#fff':cl;c.lineWidth=sel?2.5:1.8;c.stroke();
+    if(n.s==='err'&&!sel){c.strokeStyle=cl+'44';c.lineWidth=1;c.setLineDash([3,3]);c.beginPath();c.arc(n.px,n.py,21+2*Math.sin(GF*.18),0,Math.PI*2);c.stroke();c.setLineDash([]);}
+    c.restore();
+    c.fillStyle='#fff';c.font='13px serif';c.textAlign='center';c.textBaseline='middle';c.fillText(NICONS[n.tp]||'❓',n.px,n.py);
+    c.beginPath();c.arc(n.px+12,n.py-12,4,0,Math.PI*2);c.fillStyle=cl;c.shadowColor=cl;c.shadowBlur=8;c.fill();c.shadowBlur=0;
+    c.font='9px Inter';c.fillStyle=sel?'#fff':'#6a96b8';c.textAlign='center';c.textBaseline='top';
+    n.l.split('\n').forEach((l,i)=>c.fillText(l,n.px,n.py+18+i*10));
+  });
+}
+
+function nocGetAt(x,y){return NNodes.find(n=>Math.hypot(n.px-x,n.py-y)<24);}
+function nocClick(e){
+  const r=NC.getBoundingClientRect(),sx=NC.width/r.width,sy=NC.height/r.height;
+  const n=nocGetAt((e.clientX-r.left)*sx,(e.clientY-r.top)*sy);
+  if(!n){NSel=null;return;}NSel=n;$('noc-sel-lbl').textContent=n.l.split('\n')[0]+' — '+n.ip;
+  const sc=SCENARIOS_NOC[NSci],log=$('noc-log');log.innerHTML='';
+  const add=(t,l,m)=>{const d=document.createElement('div');d.className='log-line';d.innerHTML=`<span class="log-t">${t}</span><span class="log-lv ${l}">[${l.toUpperCase()}]</span><span class="log-m">${m}</span>`;log.appendChild(d);};
+  add(new Date().toTimeString().slice(0,8),'info',`Scanning: ${n.l.replace('\n',' ')} — IP: ${n.ip}`);
+  if(sc.en.includes(n.id)){sc.lg.forEach(l=>add(l.t,l.l,l.m));}
+  else{add('--:--:--','ok','Device operating normally — no issues detected');add('--:--:--','info',`Uptime: ${Math.floor(Math.random()*48+1)}h ${Math.floor(Math.random()*60)}m`);}
+  log.scrollTop=log.scrollHeight;
+}
+
+function nocAct(action,sc){
+  if(!sc)sc=SCENARIOS_NOC[NSci];
+  document.querySelectorAll('.act-btn').forEach(b=>b.classList.remove('sel'));event.target.classList.add('sel');
+  const res=$('noc-res');res.style.display='block';
+  if(action===sc.fx){
+    res.innerHTML=`<div class="ib green"><div class="ib-ico">✅</div><div class="ib-txt"><strong>Tindakan tepat!</strong> ${sc.fxMsg}</div></div>`;
+    NNodes.forEach(n=>{if(sc.en.includes(n.id))n.s='ok';});updateNOCStatus();
+    $('noc-explain').innerHTML=`<div class="ib green"><div class="ib-ico">🎉</div><div class="ib-txt"><strong>Skenario diselesaikan!</strong><br><br><strong>Penyebab:</strong> ${sc.penyebab}<br><br><strong>Solusi:</strong> ${sc.fxMsg}<br><br>Gunakan pendekatan <strong>OSI Bottom-Up</strong> untuk troubleshooting sistematis di masa depan.</div></div>`;
+    toast('Masalah berhasil diselesaikan! 🎉','success',5000);setProgress('noc',Math.min(100,progressData.noc+20));addXP(20);
+    const log=$('noc-log');const d=document.createElement('div');d.className='log-line';d.innerHTML=`<span class="log-t">${new Date().toTimeString().slice(0,8)}</span><span class="log-lv ok">[OK]</span><span class="log-m">${sc.fxMsg}</span>`;log.appendChild(d);log.scrollTop=log.scrollHeight;
+  } else {
+    const msgs={cable:'Cek visual: kabel dalam kondisi baik.',reboot:'Reboot saja tidak menyelesaikan masalah konfigurasi.',vlan:'Konfigurasi VLAN di sini sudah benar.',ip:'Tidak ada IP conflict yang terdeteksi.',port:'Port switch dalam kondisi normal.',firmware:'Firmware sudah dalam versi terbaru.'};
+    res.innerHTML=`<div class="ib amber"><div class="ib-ico">⚠️</div><div class="ib-txt"><strong>Kurang tepat.</strong> ${msgs[action]||'Analisa log diagnostic lebih teliti!'}</div></div>`;
+    toast('Tindakan belum tepat — baca log!','warning');
+  }
+}
+window.addEventListener('resize',()=>{if(TAB===3)resizeNOC();});
+
+// ═══════════════════════════════════════════════
+// PAGE 4 — KUIS
+// ═══════════════════════════════════════════════
+const QB={
+  topo:{label:'🔌 Merakit Jaringan',color:'var(--blue3)',qs:[
+    {img:'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&q=80&w=800&h=300',q:'Apa yang dimaksud dengan jaringan komputer?',o:['Kumpulan komputer yang terhubung untuk berbagi data dan sumber daya','Satu komputer dengan banyak monitor','Komputer yang punya banyak aplikasi','Sistem operasi komputer'],a:0,e:'Jaringan komputer adalah kumpulan dua atau lebih perangkat komputasi yang saling terhubung melalui media komunikasi (kabel/nirkabel) untuk berbagi data, sumber daya, dan layanan.'},
+    {img:'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=800&h=300',q:'Apa yang dimaksud dengan Topologi Star?',o:['Semua PC terhubung satu sama lain','Semua perangkat terhubung ke satu titik pusat (switch/hub)','Data mengalir melingkar','Satu kabel backbone untuk semua'],a:1,e:'Topologi Star: setiap node terhubung langsung ke switch/hub pusat. Jika satu kabel putus, hanya satu perangkat terdampak.'},
+    {q:'Perangkat apa yang menjadi pusat dalam Topologi Star?',o:['Router','Server','Switch / Hub','Modem'],a:2,e:'Switch (atau Hub) menjadi central node dalam Star. Switch modern bekerja di Layer 2 (Data Link) OSI dan menggunakan MAC address.'},
+    {q:'Apa fungsi utama PC dalam jaringan?',o:['Sebagai server pusat','Sebagai host/endpoint yang mengirim dan menerima data','Sebagai pengganti router','Sebagai sumber listrik'],a:1,e:'PC berfungsi sebagai host atau endpoint dalam jaringan. PC mengirim dan menerima data, memiliki IP dan MAC address unik untuk identifikasi.'},
+    {img:'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800&h=300',q:'Switch bekerja pada OSI Layer berapa?',o:['Layer 1 (Physical)','Layer 2 (Data Link)','Layer 3 (Network)','Layer 4 (Transport)'],a:1,e:'Switch modern bekerja di Layer 2 menggunakan MAC address untuk forwarding frame. Switch L3 bisa juga melakukan routing.'},
+    {img:'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&q=80&w=800&h=300',q:'Apa fungsi Router dalam jaringan?',o:['Menghubungkan PC dalam satu LAN','Mengarahkan paket data antar jaringan berbeda','Memperkuat sinyal WiFi','Menyimpan file data'],a:1,e:'Router bekerja di Layer 3 OSI. Mengarahkan paket berdasarkan IP address antar jaringan berbeda, termasuk ke internet.'},
+    {q:'Router bekerja di OSI Layer berapa?',o:['Layer 1','Layer 2','Layer 3 (Network)','Layer 4'],a:2,e:'Router di Layer 3 (Network) menggunakan IP address untuk routing. Switch di Layer 2, Hub di Layer 1.'},
+    {q:'Apa perbedaan utama Switch dan Hub?',o:['Tidak ada beda','Switch broadcast ke semua port; Hub forwarding ke port tujuan','Switch forwarding ke port tujuan; Hub broadcast ke semua','Switch lebih lambat'],a:2,e:'Switch cerdas: forwarding hanya ke port tujuan berdasarkan MAC table. Hub bodoh: broadcast ke semua port → menyebabkan collision tinggi.'},
+    {q:'Apa fungsi Internet?',o:['Jaringan lokal saja','Jaringan global yang menghubungkan jutaan jaringan dengan TCP/IP','Pengganti kabel UTP','Software pengolah kata'],a:1,e:'Internet adalah jaringan global yang menghubungkan jutaan jaringan komputer di seluruh dunia menggunakan protokol TCP/IP.'},
+    {q:'IP address 192.168.1.10 termasuk kelas?',o:['Kelas A','Kelas B','Kelas C','Kelas D'],a:2,e:'Kelas C: oktet pertama 192-223. Subnet default /24. Termasuk private address range RFC 1918.'},
+    {q:'Kabel UTP Cat5e mendukung kecepatan maksimal?',o:['10 Mbps','100 Mbps','1 Gbps','10 Gbps'],a:2,e:'Cat5e: 1 Gbps (Gigabit Ethernet) hingga 100 meter, bandwidth 100 MHz. Cat6 bisa 10 Gbps di jarak pendek.'},
+    {q:'Keunggulan Topologi Star dibanding Bus?',o:['Lebih murah','Jika satu kabel putus, tidak mengganggu perangkat lain','Tidak butuh switch','Tidak butuh kabel'],a:1,e:'Star: dedicated link per node. Satu kabel rusak hanya pengaruh satu node. Bus: backbone rusak = seluruh jaringan down.'},
+    {q:'Jika switch 24-port semua terisi, berapa collision domain?',o:['1','12','24 (terpisah)','48'],a:2,e:'Switch menciptakan collision domain terpisah untuk setiap port (full-duplex). 24 port = 24 collision domain berbeda. Hub hanya 1 collision domain besar.'},
+    {q:'Apa fungsi protokol ARP?',o:['Menerjemahkan domain ke IP','Memetakan IP address ke MAC address','Mengenkripsi data','Memberi IP otomatis'],a:1,e:'ARP (Address Resolution Protocol) memetakan IP ke MAC di LAN. Device broadcast "siapa punya IP ini?" → device target merespon dengan MAC-nya.'},
+    {q:'Apa kelemahan utama Topologi Star?',o:['Mahal sekali','Sangat bergantung pada switch pusat — switch rusak = jaringan down','Tidak bisa dipakai di kantor','Sinyal lemah'],a:1,e:'Kelemahan Star: single point of failure di switch pusat. Jika switch mati, semua node tidak bisa berkomunikasi. Solusi: gunakan switch redundan/HA.'},
+  ]},
+  handoff:{label:'📶 Handoff Seluler',color:'var(--cyan)',qs:[
+    {img:'https://images.unsplash.com/photo-1544414002-3932785d0012?auto=format&fit=crop&q=80&w=800&h=300',q:'Apa kepanjangan BTS?',o:['Base Transfer Station','Base Transceiver Station','Bandwidth Transmission System','Basic Telephone Station'],a:1,e:'BTS (Base Transceiver Station) — menara pemancar/penerima sinyal radio yang melayani area geografis "sel". Terhubung ke jaringan inti via BSC.'},
+    {img:'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800&h=300',q:'Apa yang dimaksud "sel" dalam sistem seluler?',o:['Baterai ponsel','Area geografis yang dilayani satu BTS','Memori internal HP','Sim Card'],a:1,e:'Sel adalah area cakupan layanan satu BTS. Berbentuk heksagonal untuk efisiensi penggunaan frekuensi tanpa gap.'},
+    {q:'Mengapa bentuk sel ideal adalah heksagonal?',o:['Lebih indah','Menutup area tanpa gap dengan tumpang tindih minimal','Lebih murah','Standar baku saja'],a:1,e:'Heksagonal: efisien menutup area, tumpang tindih minimal antar sel, distribusi frekuensi optimal, dan mendukung handoff di overlap area.'},
+    {q:'Apa itu Handoff dalam sistem seluler?',o:['Mematikan HP','Perpindahan koneksi antar BTS saat user bergerak','Restart panggilan','Cek pulsa'],a:1,e:'Handoff = perpindahan koneksi mobile station dari satu BTS ke BTS lain saat user bergerak, tanpa memutus panggilan.'},
+    {q:'Mengapa handoff diperlukan?',o:['Hemat baterai','Mencegah drop call saat user keluar area BTS','Tambah pulsa','Mempercepat internet'],a:1,e:'Tanpa handoff, sinyal akan terus melemah ketika user keluar area BTS hingga panggilan terputus (drop call). Handoff menjaga koneksi seamless.'},
+    {q:'RSSI diukur dalam satuan?',o:['Hz','dBm','V/m','Mbps'],a:1,e:'RSSI (Received Signal Strength Indicator) dalam dBm. -45 dBm sangat kuat, -110 dBm sangat lemah. Threshold handoff biasanya -85 dBm.'},
+    {q:'Berapa nilai RSSI yang dianggap sinyal "bagus"?',o:['0 dBm','-45 sampai -70 dBm','-100 dBm','-150 dBm'],a:1,e:'Sinyal bagus: -45 hingga -70 dBm. Wajar: -70 hingga -85 dBm. Lemah: -85 hingga -100 dBm. Drop: di bawah -100 dBm.'},
+    {q:'Apa perbedaan Hard Handoff dan Soft Handoff?',o:['Hard lebih cepat','Hard: putus lalu sambung; Soft: 2 BTS bersamaan','Soft digunakan di 2G saja','Hard dan Soft sama saja'],a:1,e:'Hard Handoff (GSM): break before make. Soft Handoff (CDMA): make before break — koneksi ke 2 BTS sekaligus, transisi lebih mulus.'},
+    {q:'Apa fungsi Hysteresis dalam handoff?',o:['Mempercepat handoff','Mencegah pingpong effect — handoff bolak-balik di batas dua sel','Memperkuat sinyal','Tidak ada fungsi'],a:1,e:'Hysteresis (margin 3-6 dB) mencegah pingpong: handoff hanya terjadi jika RSSI BTS baru cukup jauh lebih kuat dari BTS aktif.'},
+    {img:'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80&w=800&h=300',q:'Generasi seluler yang menggunakan teknologi LTE?',o:['2G','3G','4G','5G'],a:2,e:'4G LTE (Long Term Evolution): 3GPP, diluncurkan 2009. Download hingga 100-300 Mbps. Menggunakan OFDMA (downlink) dan SC-FDMA (uplink).'},
+    {q:'Generasi seluler 1G berbasis teknologi?',o:['Digital GSM','Analog (AMPS)','LTE','5G NR'],a:1,e:'1G menggunakan teknologi analog seperti AMPS (Advanced Mobile Phone System), hanya untuk voice call. Diluncurkan tahun 1980-an.'},
+    {q:'BTS terhubung ke jaringan inti operator via?',o:['Internet langsung','BSC (Base Station Controller)','Satellite saja','Bluetooth'],a:1,e:'BTS terhubung ke BSC (Base Station Controller) yang mengontrol beberapa BTS sekaligus. BSC lalu terhubung ke MSC (Mobile Switching Center).'},
+    {q:'Tipe sel terkecil dengan radius sekitar 10 meter?',o:['Macrocell','Microcell','Picocell','Femtocell'],a:3,e:'Femtocell: radius ~10 m, untuk indoor rumah. Picocell ~4-200 m (mall, kantor). Microcell ~200-2000 m (kota). Macrocell 1-30 km (suburban/rural).'},
+    {q:'Apa yang terjadi ketika handoff gagal?',o:['Tidak ada efek','Drop call — panggilan terputus','Sinyal makin kuat','HP otomatis restart'],a:1,e:'Handoff gagal → mobile station tidak bisa pindah ke BTS lebih kuat → sinyal terus melemah → panggilan akhirnya drop (terputus).'},
+    {q:'Kecepatan teoritis maksimum 5G dalam kondisi ideal?',o:['100 Mbps','1 Gbps','10 Gbps','100 Gbps'],a:2,e:'5G NR (New Radio) memiliki target kecepatan hingga 10 Gbps (peak), dengan latency sub-millisecond. Cocok untuk IoT, AR/VR, autonomous vehicles.'},
+  ]},
+  troubleshoot:{label:'🖥️ Troubleshooting',color:'var(--green)',qs:[
+    {img:'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=800&h=300',q:'Apa yang dimaksud dengan troubleshooting jaringan?',o:['Membeli perangkat baru','Proses sistematis mengidentifikasi dan memperbaiki masalah jaringan','Mengganti kabel rutin','Backup data'],a:1,e:'Troubleshooting jaringan: proses sistematis untuk identifikasi, diagnosis, dan perbaikan masalah pada jaringan komputer.'},
+    {q:'Pendekatan troubleshooting yang dimulai dari layer fisik?',o:['Top-Down','Middle-Out','Bottom-Up','Random'],a:2,e:'OSI Bottom-Up: mulai Layer 1 (Physical) → Layer 2 → Layer 3 dst. Paling sistematis karena masalah upper layer sering disebabkan masalah lower layer.'},
+    {img:'https://images.unsplash.com/photo-1629654297299-c8506221ca97?auto=format&fit=crop&q=80&w=800&h=300',q:'Dua PC memiliki IP yang sama. Gejalanya?',o:['Keduanya normal','Salah satu/keduanya tidak dapat berkomunikasi (IP conflict)','Koneksi jadi lebih cepat','Router restart sendiri'],a:1,e:'IP conflict: ARP table kacau, 2 MAC mengklaim 1 IP. Komunikasi tidak stabil, Windows menampilkan warning "IP address conflict detected".'},
+    {q:'Perintah untuk cek konektivitas dasar dengan ICMP?',o:['traceroute','arp','ping','ipconfig'],a:2,e:'Ping kirim ICMP Echo Request → tunggu Echo Reply. Berguna untuk cek reachability, ukur latency (RTT), dan deteksi packet loss.'},
+    {q:'"Link Down" pada port switch paling sering disebabkan?',o:['IP conflict','Masalah fisik: kabel putus atau konektor longgar','Salah konfigurasi VLAN','Firmware outdated'],a:1,e:'Link Down = indikasi Layer 1 (fisik). Penyebab umum: kabel UTP rusak, konektor RJ45 longgar, atau port switch bermasalah. Cek LED status port dulu.'},
+    {q:'VLAN digunakan untuk?',o:['Meningkatkan kecepatan internet','Memisahkan broadcast domain secara logis','Mengurangi kabel','Mengenkripsi data'],a:1,e:'VLAN: memisahkan broadcast domain secara logis dalam 1 switch fisik. Manfaat: keamanan, performa (kurangi broadcast storm), fleksibilitas.'},
+    {q:'Apa fungsi perintah traceroute?',o:['Cek IP saja','Melacak jalur paket hop-by-hop ke tujuan','Mengganti DNS','Restart router'],a:1,e:'Traceroute pakai TTL incrementing (1,2,3...). Tiap router yang menerima TTL=0 kirim ICMP Time Exceeded. Kita tahu IP & RTT tiap hop.'},
+    {q:'Apa penyebab utama "Port Error" pada switch?',o:['IP conflict','errDisabled karena port security/STP loop','Firmware OK','Kabel baru'],a:1,e:'Port errDisabled biasanya karena: pelanggaran port security (terlalu banyak MAC), STP loop terdeteksi, atau BPDU guard aktif. Reset dengan "no shutdown".'},
+    {q:'Apa yang harus dicek pertama jika router mati total?',o:['Update OS','Cek lampu indikator dan daya listrik','Beli router baru','Restart semua PC'],a:1,e:'Layer 1 dulu: cek lampu indikator router (power LED), kabel daya, UPS. Bisa juga karena overheating. Jika hardware OK, baru cek firmware.'},
+    {q:'Kabel UTP Cat6 mendukung kecepatan dan jarak?',o:['100 Mbps / 100m','1 Gbps / 100m','10 Gbps / 55m','10 Gbps / 100m'],a:2,e:'Cat6: 10 Gbps hingga 55 meter (250 MHz), atau 1 Gbps hingga 100 meter. Cat6A: 10 Gbps penuh hingga 100 meter (500 MHz).'},
+    {q:'Apa yang dimaksud dengan IP Conflict?',o:['Router tidak punya IP','Dua perangkat memakai IP address yang sama','IP tidak valid','DHCP error'],a:1,e:'IP Conflict: dua atau lebih perangkat dikonfigurasi dengan IP statis yang sama, atau DHCP memberikan IP duplikat. Menyebabkan komunikasi tidak stabil.'},
+    {q:'Bagaimana cara mengatasi IP Conflict?',o:['Restart semua PC','Ubah IP salah satu perangkat atau aktifkan DHCP','Cabut semua kabel','Update Windows'],a:1,e:'Solusi IP conflict: (1) Ubah IP statis salah satu perangkat, atau (2) Aktifkan DHCP agar IP diberikan otomatis tanpa duplikasi.'},
+    {q:'Apa yang menyebabkan VLAN tidak bisa berkomunikasi antar departemen?',o:['Kabel rusak','Salah konfigurasi trunk / inter-VLAN routing','PC mati','Router baru'],a:1,e:'VLAN antar departemen butuh inter-VLAN routing dan trunk yang allow semua VLAN. Jika VLAN tidak masuk allowed-list, komunikasi gagal.'},
+    {q:'Perintah Windows untuk lihat konfigurasi IP & gateway?',o:['ifconfig','ipconfig','netconfig','show ip'],a:1,e:'Windows: ipconfig. Linux/macOS: ifconfig atau ip addr. Untuk detail lengkap: ipconfig /all (Windows) atau ip -d addr (Linux).'},
+    {q:'Langkah terakhir dalam siklus troubleshooting jaringan?',o:['Restart','Dokumentasikan masalah dan solusi','Beli perangkat baru','Tidak ada'],a:1,e:'Setelah masalah dipecahkan, langkah terakhir wajib: dokumentasikan akar masalah, solusi, dan tindakan. Berguna untuk referensi masa depan & knowledge base.'},
+  ]},
+};
+
+// QUIZ STATE: ONE QUESTION PER PAGE
+let QCAT='topo',QIDX=0,QANS={topo:{},handoff:{},troubleshoot:{}};
+
+function buildQuiz(){
+  const p=$('pg-quiz');if(p.dataset.built){renderQuizScreen();return;}p.dataset.built='1';
+  p.innerHTML=`<div class="mw">
+    <div class="quiz-cat-select" id="quiz-cat-select"></div>
+    <div id="quiz-stage"></div>
+  </div>`;
+  renderCatSelect();renderQuizScreen();
+}
+
+function renderCatSelect(){
+  const el=$('quiz-cat-select');if(!el)return;
+  el.innerHTML=Object.keys(QB).map(k=>`<button class="quiz-cat-btn${QCAT===k?' active':''}" onclick="selectCat('${k}')">${QB[k].label} <span style="opacity:.65;font-size:10px">${getCatScore(k)}/${QB[k].qs.length}</span></button>`).join('');
+}
+
+function selectCat(k){QCAT=k;QIDX=0;renderCatSelect();renderQuizScreen();}
+
+function getCatScore(k){return Object.values(QANS[k]).filter(v=>v.correct).length;}
+function getCatAnswered(k){return Object.keys(QANS[k]).length;}
+
+function quizVisual(cat,idx){
+  const meta={
+    topo:[['Jaringan Komputer','Client – Switch – Router – Internet'],['Topologi Star','Switch pusat – PC terhubung langsung'],['Switch / Hub','Central node topologi star'],['PC / Host','Endpoint pengirim data di LAN'],['Layer 2 OSI','Switch bekerja pakai MAC address'],['Router','Perangkat Layer 3 pengarah paket'],['Layer 3 OSI','Router membaca IP address'],['Switch vs Hub','Forwarding pintar vs broadcast'],['Internet','Jaringan global TCP/IP dunia'],['IP Kelas C','192.168.1.10 /24 – RFC 1918'],['Kabel UTP Cat5e','Media transmisi 1 Gbps Ethernet'],['Keunggulan Star','Kabel putus tidak semua down'],['Collision Domain','Setiap port switch = 1 domain'],['ARP','Memetakan IP ke MAC address'],['Kelemahan Star','Switch pusat = single point of failure']],
+    handoff:[['BTS','Base Transceiver Station – antena seluler'],['Sel Seluler','Area cakupan satu BTS'],['Heksagonal Cell','Model cakupan tanpa celah'],['Handoff','Perpindahan antar BTS saat bergerak'],['Mencegah Drop Call','Sinyal tetap tersambung saat pindah'],['RSSI','Kekuatan sinyal dalam dBm'],['Sinyal Bagus','-45 dBm sampai -70 dBm'],['Hard vs Soft','Break-before-make vs make-before-break'],['Hysteresis','Mencegah pingpong handoff'],['4G LTE','Generasi berbasis LTE'],['1G Analog','AMPS – suara analog tahun 1980an'],['BSC','Base Station Controller'],['Femtocell','Sel indoor kecil untuk rumah / kantor'],['Handoff Gagal','Call dropped'],['5G NR','New Radio – high speed low latency']],
+    troubleshoot:[['Troubleshooting','Mencari akar masalah jaringan'],['OSI Bottom-Up','Mulai dari layer fisik'],['IP Conflict','Dua host memakai IP address sama'],['Ping ICMP','Cek konektivitas dasar'],['Link Down','Kabel putus atau port bermasalah'],['VLAN','Memisahkan broadcast domain'],['Traceroute','Melacak hop demi hop paket data'],['Port Error','Port errDisabled – STP/security'],['Router Mati','Cek lampu indikator & daya listrik'],['Cat6','10 Gbps – jarak pendek 55 meter'],['IP Conflict','Duplikasi IP address'],['Solusi IP Conflict','Ubah IP atau gunakan DHCP'],['VLAN Salah','Trunk / inter-VLAN routing gagal'],['ipconfig','Cek konfigurasi IP & gateway'],['Dokumentasi','Catat akar masalah dan solusi']]
+  };
+  const [title,sub]=(meta[cat]&&meta[cat][idx])||['Telekomunikasi','Ilustrasi materi'];
+  const c1=cat==='topo'?'#1e6fff':cat==='handoff'?'#00bcd4':'#00c853';
+  const u=(id)=>`https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=400&w=800`;
+  const IMGS={
+    topo:[u(2881232),u(5073493),u(6466143),u(4716292),u(13963756),u(5050305),u(2420212),u(2881224),u(4330787),u(19226352),u(2881232),u(6466143),u(5073493),u(4716292),u(13963756)],
+    handoff:[u(15523291),u(15407743),u(37888038),u(20034963),u(14356121),u(9290878),u(9290873),u(15104403),u(34740416),u(6778065),u(15523291),u(15407743),u(37888038),u(9290873),u(14356121)],
+    troubleshoot:[u(37605911),u(6754846),u(6804585),u(10558599),u(10558598),u(4792713),u(1181320),u(34007235),u(1181341),u(34007247),u(37605911),u(6754846),u(6804585),u(10558599),u(4792713)]
+  };
+  const img=(IMGS[cat]&&IMGS[cat][idx])||IMGS.topo[0];
+  return `<div class="quiz-img-wrap" style="--qc1:${c1}"><img src="${img}" alt="${title}" class="quiz-img" referrerpolicy="no-referrer" loading="eager" onerror="this.style.display='none'"><div class="quiz-img-overlay"><span class="quiz-img-tag">${cat.toUpperCase()}</span><span class="quiz-img-num">${idx+1}/15</span></div><div class="quiz-img-title">${title}</div></div>`;
+}
+
+function renderQuizScreen(){
+  const stage=$('quiz-stage');if(!stage)return;
+  const qs=QB[QCAT].qs,total=qs.length;
+  if(QIDX>=total){renderFinish();return;}
+  const q=qs[QIDX];const ans=QANS[QCAT][QIDX];
+  const totalAns=Object.keys(QANS).reduce((s,k)=>s+getCatAnswered(k),0);
+  const totalAll=Object.values(QB).reduce((s,v)=>s+v.qs.length,0);
+  const totalCorrect=Object.keys(QANS).reduce((s,k)=>s+getCatScore(k),0);
+  const nilai=totalAns>0?Math.round((totalCorrect/totalAns)*100):0;
+  stage.innerHTML=`<div class="quiz-card-main">
+    <div class="quiz-meta">
+      <div>
+        <div class="quiz-cat-label">${QB[QCAT].label}</div>
+        <div class="quiz-indicator">Soal ${QIDX+1} / ${total}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase">Nilai</div>
+        <div style="font-size:22px;font-weight:800;font-family:var(--mono);color:${nilai>=70?'var(--green)':nilai>=50?'var(--amber)':'var(--red)'}">${nilai}</div>
+      </div>
+    </div>
+    <div class="quiz-main-bar"><div class="quiz-main-fill" style="width:${((QIDX+(ans?1:0))/total)*100}%"></div></div>
+    ${quizVisual(QCAT,QIDX)}
+    <div class="quiz-q-text">${q.q}</div>
+    <div class="quiz-opts" id="qopts">
+      ${q.o.map((o,oi)=>{
+        let cls='quiz-opt';
+        if(ans){cls+=' locked';if(oi===q.a)cls+=' right';else if(oi===ans.chosen)cls+=' wrong';}
+        return `<button class="${cls}" onclick="answerQOPP(${oi})"><span class="quiz-opt-letter">${String.fromCharCode(65+oi)}</span>${o}</button>`;
+      }).join('')}
+    </div>
+    ${ans?`<div class="quiz-feedback show ${ans.correct?'ok':'bad'}"><div class="quiz-feedback-title ${ans.correct?'ok':'bad'}">${ans.correct?'✅ Jawaban Benar!':'❌ Jawaban Salah'}</div><div class="quiz-feedback-text"><strong>Pembahasan:</strong> ${q.e}</div></div>`:''}
+    <div class="quiz-nav">
+      <button class="btn btn-secondary btn-sm" onclick="navQ(-1)" ${QIDX===0?'disabled':''}>← Sebelumnya</button>
+      <div style="font-size:11px;color:var(--text3)">${totalAns}/${totalAll} terjawab • ${totalCorrect} benar</div>
+      <button class="btn btn-primary btn-sm" onclick="navQ(1)">${QIDX===total-1?'Selesai →':'Selanjutnya →'}</button>
+    </div>
+  </div>`;
+  renderCatSelect();
+}
+
+function answerQOPP(oi){
+  const qs=QB[QCAT].qs;if(QIDX>=qs.length)return;
+  if(QANS[QCAT][QIDX])return;
+  const q=qs[QIDX];const correct=oi===q.a;
+  QANS[QCAT][QIDX]={chosen:oi,correct};
+  if(correct)addXP(10);else addXP(2);
+  const totalAns=Object.keys(QANS).reduce((s,k)=>s+getCatAnswered(k),0);
+  const totalAll=Object.values(QB).reduce((s,v)=>s+v.qs.length,0);
+  setProgress('quiz',Math.round((totalAns/totalAll)*100));
+  toast(correct?'✅ Jawaban benar! +10 XP':'❌ Salah — baca pembahasan',correct?'success':'error',2500);
+  renderQuizScreen();
+}
+
+function navQ(d){const total=QB[QCAT].qs.length;QIDX+=d;if(QIDX<0)QIDX=0;if(QIDX>total){QIDX=total;}renderQuizScreen();}
+
+function renderFinish(){
+  const stage=$('quiz-stage');const total=QB[QCAT].qs.length,correct=getCatScore(QCAT);
+  const nilai=Math.round((correct/total)*100);
+  const emoji=nilai>=80?'🏆':nilai>=60?'🎉':nilai>=40?'👍':'💪';
+  const msg=nilai>=80?'Luar biasa! Kamu menguasai materi ini.':nilai>=60?'Bagus! Pertahankan dan terus belajar.':nilai>=40?'Cukup baik. Ulang lagi materi yang salah.':'Belajar lagi ya, jangan menyerah!';
+  stage.innerHTML=`<div class="quiz-card-main"><div class="quiz-finish-screen">
+    <div class="quiz-finish-emoji">${emoji}</div>
+    <div class="quiz-finish-title">Kategori Selesai!</div>
+    <div style="color:var(--text2);font-size:13px">${QB[QCAT].label}</div>
+    <div class="quiz-finish-score">${nilai}</div>
+    <div style="color:var(--text2);font-size:13px;margin-bottom:6px">Skor: ${correct} dari ${total} benar</div>
+    <div style="color:var(--text3);font-size:12px;max-width:380px;margin:0 auto 18px">${msg}</div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-secondary btn-sm" onclick="QIDX=0;renderQuizScreen()">🔄 Ulangi Kategori</button>
+      <button class="btn btn-primary btn-sm" onclick="QIDX=0;QANS['${QCAT}']={};renderQuizScreen()">🆕 Reset & Mulai Ulang</button>
+    </div>
+  </div></div>`;
+}
+</script>
+</body>
+</html>
