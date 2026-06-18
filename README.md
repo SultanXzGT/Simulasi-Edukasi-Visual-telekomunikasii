@@ -2,7 +2,8 @@
 
 Sebuah project simulasi interaktif berbasis web yang dirancang untuk memvisualisasikan dan mengedukasi pengguna mengenai konsep-konsep dasar dalam sistem telekomunikasi.
 
-[![Website!](https://sultanxzgt.github.io/Simulasi-Edukasi-Visual-telekomunikasii/)
+WEBSITE
+https://sultanxzgt.github.io/Simulasi-Edukasi-Visual-telekomunikasii](https://sultanxzgt.github.io/Simulasi-Edukasi-Visual-telekomunikasii
 
 ## ✨ Fitur Utama
 Visualisasi Interaktif: Menampilkan cara kerja sistem telekomunikasi secara langsung.
