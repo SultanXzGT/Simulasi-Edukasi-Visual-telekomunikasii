@@ -1,6 +1,6 @@
 # 📡 Simulasi Edukasi Visual Telekomunikasi
 
-Sebuah project simulasi interaktif berbasis web yang dirancang untuk memvisualisasikan dan mengedukasi pengguna mengenai konsep-konsep dasar dalam sistem telekomunikasi.
+Sebuah simulasi interaktif berbasis web yang dirancang untuk memvisualisasikan dan mengedukasi mengenai konsep-konsep dasar dalam sistem telekomunikasi.
 
 WEBSITE
 https://sultanxzgt.github.io/Simulasi-Edukasi-Visual-telekomunikasii/
