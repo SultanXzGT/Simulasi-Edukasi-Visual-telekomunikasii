@@ -8,7 +8,6 @@ https://sultanxzgt.github.io/Simulasi-Edukasi-Visual-telekomunikasii/
 ## ✨ Fitur Utama
 Visualisasi Interaktif: Menampilkan cara kerja sistem telekomunikasi secara langsung.
 Akses Mudah: Sepenuhnya berjalan di browser tanpa perlu instalasi aplikasi tambahan.
-(Tambahkan fitur spesifik lainnya di sini, misalnya: pengaturan frekuensi, modulasi, dll)
 
 ## 🛠️ Teknologi yang Digunakan
 - HTML
