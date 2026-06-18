@@ -14,7 +14,7 @@ Akses Mudah: Sepenuhnya berjalan di browser tanpa perlu instalasi aplikasi tamba
 - HTML
 
 ## 👨‍💻 Kreator
-Dikembangkan oleh Sulthan Fauzian Permana.
+Dikembangkan oleh Sulthan.
 
 ---
 Project ini bersifat open-source dan terbuka untuk pembelajaran.
